@@ -1,0 +1,1 @@
+class MarionettePrimitive(object): pass
