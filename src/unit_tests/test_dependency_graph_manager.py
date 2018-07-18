@@ -3,6 +3,9 @@ import pytest
 
 class TestDependencyGraphManager(object):
 
+    # is this the same as saying the graph has cycles? No because the "terminal nodes" can have dependencies that have references to nothing <- valid?
+    def test_resolve_dependencies_when_there_are_no_terminal_nodes(self): pass
+
     def test_acyclic_check_with_indirectly_cyclic_graph(self, dependency_graph_manager, dependency_graph_with_cycle):
         self.add_dependencies(dependency_graph_manager, *dependency_graph_with_cycle)
         assert not dependency_graph_manager.dependency_graph_is_acyclic(dependency_graph_manager.DEPENDENCY_GRAPH)
