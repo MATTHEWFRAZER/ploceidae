@@ -20,13 +20,13 @@ class Dependency(MarionettePrimitive):
         DependencyValidationMethods.input_validation_for_dependency_obj(decorated_obj)
 
         DependencyGraphManager.add_dependency(decorated_obj)
-        resolved_dependencies = DependencyGraphManager.resolve_dependencies(decorated_obj)
 
-        def inner(*unresolved_dependencies):
+        def nested(*unresolved_dependencies):
+            resolved_dependencies = DependencyGraphManager.resolve_dependencies(decorated_obj)
             dependencies = unresolved_dependencies + resolved_dependencies
             return decorated_obj(*dependencies)
 
-        return inner
+        return nested
 
 
 dependency = Dependency

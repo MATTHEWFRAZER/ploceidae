@@ -27,10 +27,19 @@ class TestDependency:
     def test_dependency_application_to_obj_that_is_not_callable(self, dependency_decorator):
         dependency_decorator()("invalid")
 
+    @pytest.mark.skip(reason="support for decorator means that this check will not be done until wiring")
     @pytest.mark.xfail(raises=BaseException)
     def test_dependency_application_to_obj_that_has_missing_dependency_at_time_of_application(self, dependency_decorator):
         def a(b): pass
         dependency_decorator()(a)
+
+    def test_dependency_application_with_decorator_syntax_with_a_second_decorator(self, dependency_decorator, separate_decorator):
+        try:
+            @dependency_decorator()
+            @separate_decorator
+            def a(b): pass
+        except Exception as ex:
+            pytest.fail("could not decorate previously decorated function. Ex: {0}".format(ex))
 
     @staticmethod
     def dependency_application(syntax, application_callback):

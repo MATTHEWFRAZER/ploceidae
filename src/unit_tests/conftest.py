@@ -98,3 +98,11 @@ def dependency_decorator():
 def partial_dependency_fixture(request, container):
     attributes = {"ignored_dependencies": request.param[0], "left_over_dependencies": request.param[1], "container": container}
     return type("PartialDependencyFixture", (), attributes)
+
+@pytest.fixture
+def separate_decorator():
+    def dec(func):
+        def nested(*args, **kwargs):
+            return func(*args, **kwargs)
+        return nested
+    return dec

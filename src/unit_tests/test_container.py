@@ -9,8 +9,28 @@ class Dummy(object):
     def __call__(self, a, b, c):
         return a + b + c
 
+    def method(self, a, b, c):
+        return a + b + c
+
+    @classmethod
+    def class_method(cls, a, b, c):
+        return a + b + c
+
 
 class TestContainer(object):
+
+    def test_dependencies_can_be_delivered_to_bound_method(self, container):
+        wired = container.wire_dependencies(Dummy(1, 2, 3).method)
+        assert "abcbcc" == wired
+
+    def test_dependencies_can_be_delivered_to_class_method(self, container):
+        wired = container.wire_dependencies(Dummy(1, 2, 3).class_method)
+        assert "abcbcc" == wired
+
+    def test_partial_wire_up_dependencies_works_when_dependencies_to_ignore_is_empty(self, obj_to_wire_up, container):
+        wired = container.partial_wire_dependencies(obj_to_wire_up)
+        assert "xabcbcc" == wired()
+
     # make sure that exceptions bubble up
     def test_wire_up_dependencies_with_obj_that_is_in_dependency_graph(self, obj_to_wire_up, container):
         try:

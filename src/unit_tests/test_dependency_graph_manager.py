@@ -60,6 +60,14 @@ class TestDependencyGraphManager(object):
 
         self.add_dependencies(dependency_graph_manager, a, b)
 
+    # do we want to test this behavior?
+    def test_resolve_dependencies_after_adding_dependency(self, dependency_graph_manager):
+        def a(): return "a"
+        def b(a): pass
+        assert not dependency_graph_manager.resolve_dependencies(a)
+        dependency_graph_manager.add_dependency(a)
+        assert dependency_graph_manager.resolve_dependencies(b)[0] == "a"
+
     def test_resolve_dependencies_with_dependent_that_has_no_dependencies(self, dependency_graph_manager):
         def a(): pass
         assert not dependency_graph_manager.resolve_dependencies(a)

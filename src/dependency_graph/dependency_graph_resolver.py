@@ -17,7 +17,6 @@ class DependencyGraphResolver(object):
 
     @classmethod
     def is_resolvable_dependency(cls, dependency_obj):
-        # maybe we want to return dependencies from a function
         return all(not cls.is_dependency_obj(dependency_name) for dependency_name in dependency_obj.dependencies)
 
     @classmethod
