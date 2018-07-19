@@ -1,62 +1,26 @@
-import inspect
+from inspect import getargspec
 
-from dependency_graph.dependency_graph import DependencyGraphNode
 from dependency_graph.dependency_graph import DependencyGraph
-from dependency_graph.dependency_with_mutable_dependencies import DependencyWithMutableDependencies
+from dependency_graph.dependency_graph import DependencyGraphNode
+from dependency_graph.dependency_graph_resolver import DependencyGraphResolver
 
 
-class DependencyGraphManager(object):
+class DependencyGraphManager(DependencyGraphResolver):
 
     DEPENDENCY_GRAPH = DependencyGraph()
-    RESOLVED_DEPENDENCY_GRAPH = {}
 
     @classmethod
     def add_dependency(cls, callable_obj):
-        dependency_obj = cls.make_depency_obj_from_callable(callable_obj)
+        dependency_obj = cls.make_dependency_obj_from_callable(callable_obj)
         cls.DEPENDENCY_GRAPH.add_node(dependency_obj)
 
     @classmethod
     def resolve_dependencies(cls, callable_obj, *dependencies_to_ignore):
-        if not cls.RESOLVED_DEPENDENCY_GRAPH:
-            cls.resolve_dependency_graph()
-        dependency_obj = cls.make_depency_obj_from_callable(callable_obj)
+        if len(cls.DEPENDENCY_GRAPH) != len(cls.RESOLVED_DEPENDENCY_GRAPH):
+            cls.resolve_dependency_graph(cls.DEPENDENCY_GRAPH)
+        dependency_obj = cls.make_dependency_obj_from_callable(callable_obj)
         dependencies = filter(lambda dependency: dependency not in dependencies_to_ignore, dependency_obj.dependencies)
-        return [cls.RESOLVED_DEPENDENCY_GRAPH[dependency] for dependency in dependencies]
-
-    @classmethod
-    def resolve_dependency_graph(cls):
-        # resolve the dependency objects to their dependencies and apply at end
-        dependency_graph_copy = {key : DependencyWithMutableDependencies(value) for key, value in cls.DEPENDENCY_GRAPH.items()}
-        while dependency_graph_copy:
-            dependency_obj = cls.find_node_with_no_out_edges(dependency_graph_copy)
-            dependency_obj_name = dependency_obj.dependency_obj.__name__
-            cls.pop_all_references_to_dependency(dependency_graph_copy, dependency_obj_name)
-            graph_node = cls.apply_dependencies(dependency_obj) if cls.is_resolvable_dependency(dependency_obj) else dependency_obj
-            cls.RESOLVED_DEPENDENCY_GRAPH[dependency_obj_name] = graph_node
-
-    @staticmethod
-    def find_node_with_no_out_edges(dependency_graph):
-        for dependency in dependency_graph.values():
-            if not dependency.mutable_dependencies:
-                return dependency
-        else:
-            raise BaseException("dependency graph has some unresolvable dependencies")
-
-    @classmethod
-    def is_resolvable_dependency(cls, dependency_obj):
-        # maybe we want to return dependencies from a function
-        return all(type(cls.RESOLVED_DEPENDENCY_GRAPH[dependency_name]).__name__ != "Dependency" for dependency_name in dependency_obj.dependencies)
-
-    @staticmethod
-    def pop_all_references_to_dependency(dependency_graph, dependency_name):
-        dependency_graph.pop(dependency_name)
-        for dependency_obj in dependency_graph.values():
-            dependency_obj.mutable_dependencies = [dependency for dependency in dependency_obj.mutable_dependencies if dependency != dependency_name]
-
-    @classmethod
-    def apply_dependencies(cls, dependency_obj):
-        resolved_dependencies = [cls.RESOLVED_DEPENDENCY_GRAPH[dependency] for dependency in dependency_obj.dependencies]
-        return dependency_obj.dependency_obj(*resolved_dependencies)
+        return [cls.get_dependency_obj_from_dependency_name(dependency) for dependency in dependencies]
 
     @classmethod
     def dependency_graph_is_acyclic(cls, dependency_graph):
@@ -83,18 +47,16 @@ class DependencyGraphManager(object):
             if cls.node_has_no_in_edges(node, temp_graph):
                 return node_name
 
-    @staticmethod
-    def get_dependency_on_dependency(dependency_graph_copy, dependency_on_dependency_name):
+    @classmethod
+    def get_dependency_obj_from_dependency_name(cls, dependency_name):
         try:
-            return dependency_graph_copy[dependency_on_dependency_name]
+            return cls.RESOLVED_DEPENDENCY_GRAPH[dependency_name]
         except KeyError:
-            raise ValueError(
-                "Could not resolve {0} in dependency graph".format(dependency_on_dependency_name))
+            raise ValueError("dependency {0} is not part of dependency graph".format(dependency_name))
 
     @staticmethod
-    def make_depency_obj_from_callable(callable_obj):
-        dependencies = [dependency for dependency in inspect.getargspec(callable_obj)[0] if
-                        dependency not in ("self", "mcs", "cls")]
+    def make_dependency_obj_from_callable(callable_obj):
+        dependencies = [dependency for dependency in getargspec(callable_obj)[0] if dependency not in ("self", "mcs", "cls")]
         return DependencyGraphNode(callable_obj, *dependencies)
 
     @staticmethod

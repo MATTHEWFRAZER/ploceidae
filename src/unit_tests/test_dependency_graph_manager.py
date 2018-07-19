@@ -79,7 +79,7 @@ class TestDependencyGraphManager(object):
         except ValueError as ex:
             pytest.fail("dependency resolution failed:{0}".format(ex))
 
-    @pytest.mark.xfail(raises=ValueError)
+    @pytest.mark.xfail(raises=BaseException)
     def test_resolve_dependencies_with_missing_dependency(self, dependency_graph_manager):
         def a(b): pass
 

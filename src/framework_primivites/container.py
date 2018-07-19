@@ -1,9 +1,9 @@
 from inspect import getargspec
 
-from framework_primivites.primitive_marker import MarionettePrimitive
 from dependency_graph.dependency_graph_manager import DependencyGraphManager
 from framework_primivites.dependency_validation_methods import DependencyValidationMethods
 from framework_primivites.partial_injection import PartialInjection
+from framework_primivites.primitive_marker import MarionettePrimitive
 
 
 class Container(MarionettePrimitive):

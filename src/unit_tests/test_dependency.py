@@ -27,7 +27,7 @@ class TestDependency:
     def test_dependency_application_to_obj_that_is_not_callable(self, dependency_decorator):
         dependency_decorator()("invalid")
 
-    @pytest.mark.xfail(raises=ValueError)
+    @pytest.mark.xfail(raises=BaseException)
     def test_dependency_application_to_obj_that_has_missing_dependency_at_time_of_application(self, dependency_decorator):
         def a(b): pass
         dependency_decorator()(a)

@@ -1,6 +1,6 @@
-from framework_primivites.primitive_marker import MarionettePrimitive
 from dependency_graph.dependency_graph_manager import DependencyGraphManager
 from framework_primivites.dependency_validation_methods import DependencyValidationMethods
+from framework_primivites.primitive_marker import MarionettePrimitive
 
 __all__ = ["dependency"]
 
@@ -11,6 +11,7 @@ class Dependency(MarionettePrimitive):
     def __init__(self, **kwargs):
         DependencyValidationMethods.input_validation_to_init(kwargs)
         self.scope = kwargs.get("scope", "function")
+        self.treat_as_resolved_obj = False
 
     def __call__(self, decorated_obj):
         # we need to take this algorithm into somne place else, question do we want the end caller to be in the dependency graph
