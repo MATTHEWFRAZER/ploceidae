@@ -24,8 +24,6 @@ class DependencyGraphManager(DependencyGraphResolver):
 
     @classmethod
     def dependency_graph_is_acyclic(cls, dependency_graph):
-        # topological sort
-        # with start node remove the in edges one with no in edges must be left if there are no nodes with no in edges raise
         temp_graph = dependency_graph.copy()
         graph_has_topological_sort = cls.topological_sort(temp_graph)
         del temp_graph

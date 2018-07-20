@@ -75,3 +75,13 @@ class TestContainer(object):
             pytest.fail(". Ex {0}".format(ex))
         else:
             partially_wired(*partial_dependency_fixture.left_over_dependencies)
+
+    def test_partial_wire_up_dependencies_to_instance_obj(self, partial_dependency_fixture):
+        try:
+            partial_wired = partial_dependency_fixture.container.partial_wire_dependencies(Dummy("a", "b", "c").method, *partial_dependency_fixture.ignored_dependencies)
+        except Exception as ex:
+            pytest.fail(". Ex {0}".format(ex))
+        else:
+            obj = partial_wired(*partial_dependency_fixture.left_over_dependencies)
+
+        assert obj == "abcbcc"

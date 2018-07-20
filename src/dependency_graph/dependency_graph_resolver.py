@@ -1,4 +1,4 @@
-from framework_primivites.dependency_with_mutable_dependencies import DependencyWithMutableDependencies
+from framework_primivites.dependency_primitives.dependency_with_mutable_dependencies import DependencyWithMutableDependencies
 from framework_primivites.primitive_marker import MarionettePrimitive
 
 

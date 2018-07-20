@@ -1,5 +1,5 @@
 from dependency_graph.dependency_graph_manager import DependencyGraphManager
-from framework_primivites.dependency_validation_methods import DependencyValidationMethods
+from framework_primivites.dependency_primitives.dependency_validation_methods import DependencyValidationMethods
 from framework_primivites.primitive_marker import MarionettePrimitive
 
 __all__ = ["dependency"]

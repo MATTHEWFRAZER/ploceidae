@@ -6,7 +6,7 @@ sys.path.append("..")
 from dependency_graph.dependency_graph import DependencyGraphNode
 from dependency_graph.dependency_graph_manager import DependencyGraphManager
 from framework_primivites.container import Container
-from framework_primivites.dependency import dependency
+from framework_primivites.dependency_primitives.dependency import dependency
 
 
 @pytest.fixture
