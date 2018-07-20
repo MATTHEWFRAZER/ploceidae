@@ -52,7 +52,7 @@ class DependencyGraphManager(DependencyGraphResolver):
         try:
             return cls.RESOLVED_DEPENDENCY_GRAPH[dependency_name]
         except KeyError:
-            raise ValueError("dependency {0} is not part of dependency graph".format(dependency_name))
+            raise ValueError("dependency_primitives {0} is not part of dependency_primitives graph".format(dependency_name))
 
     @staticmethod
     def make_dependency_obj_from_callable(callable_obj):

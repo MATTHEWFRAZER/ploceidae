@@ -21,12 +21,12 @@ class DependencyValidationMethods(object):
         try:
             decorated_obj.__name__
         except AttributeError:
-            raise ValueError("dependency must have __name__ attribute")
+            raise ValueError("dependency_primitives must have __name__ attribute")
 
     @classmethod
     def decorated_obj_does_not_depend_on_itself(cls, decorated_obj):
         if decorated_obj.__name__ in getargspec(decorated_obj)[0]:
-            raise ValueError("{0} is a dependency on itself".format(decorated_obj.__name__))
+            raise ValueError("{0} is a dependency_primitives on itself".format(decorated_obj.__name__))
 
     @classmethod
     def input_validation_to_init(cls, kwargs):

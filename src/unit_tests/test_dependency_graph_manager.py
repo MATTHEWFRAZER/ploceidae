@@ -43,7 +43,7 @@ class TestDependencyGraphManager(object):
         mocked_graph = self.get_mocked_graph(dependency_graph_node_with_no_in_edges)
         assert dependency_graph_manager.node_has_no_in_edges(dependency_graph_node_with_no_in_edges, mocked_graph)
 
-    @pytest.mark.skip(reason="the logic for checking for a dependency being a valid callable does not reside in the dependency graph manager")
+    @pytest.mark.skip(reason="the logic for checking for a dependency_primitives being a valid callable does not reside in the dependency_primitives graph manager")
     @pytest.mark.xfail(raises=ValueError)
     def test_add_dependency_with_non_callable_throws(self, dependency_graph_manager):
         dependency_graph_manager.add_dependency(None)
@@ -72,7 +72,7 @@ class TestDependencyGraphManager(object):
         def a(): pass
         assert not dependency_graph_manager.resolve_dependencies(a)
 
-    @pytest.mark.skip(reason="the logic for checking for a dependency being a dependency to itself does not reside in the dependency graph manager")
+    @pytest.mark.skip(reason="the logic for checking for a dependency_primitives being a dependency_primitives to itself does not reside in the dependency_primitives graph manager")
     @pytest.mark.xfail(raises=ValueError)
     def test_resolve_dependencies_with_dependent_that_declares_dependency_on_itself(self, dependency_graph_manager):
         def a(a): pass
@@ -85,7 +85,7 @@ class TestDependencyGraphManager(object):
             dependencies = dependency_graph_manager.resolve_dependencies(dependency_graph[0])
             dependency_graph[0](*dependencies)
         except ValueError as ex:
-            pytest.fail("dependency resolution failed:{0}".format(ex))
+            pytest.fail("dependency_primitives resolution failed:{0}".format(ex))
 
     @pytest.mark.xfail(raises=BaseException)
     def test_resolve_dependencies_with_missing_dependency(self, dependency_graph_manager):

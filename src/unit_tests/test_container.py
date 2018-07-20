@@ -40,7 +40,7 @@ class TestContainer(object):
 
         assert "xabcbcc" == wired
 
-    @pytest.mark.skip(reason="the logic for checking for a dependency to have the __name__ attribute does not reside in the container")
+    @pytest.mark.skip(reason="the logic for checking for a dependency_primitives to have the __name__ attribute does not reside in the container")
     @pytest.mark.xfail(raises=ValueError)
     def test_wire_up_dependencies_with_invalid_obj(self, container):
         container.wire_dependencies("invalid obj")

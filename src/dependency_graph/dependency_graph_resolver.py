@@ -9,7 +9,7 @@ class DependencyGraphResolver(object):
     def resolve_dependency_graph(cls, dependency_graph):
         dependency_graph_copy = {key : DependencyWithMutableDependencies(value) for key, value in dependency_graph.items()}
         while dependency_graph_copy:
-            dependency_obj = cls.find_node_with_no_out_edges(dependency_graph_copy)
+            dependency_obj = cls.get_node_with_no_out_edges(dependency_graph_copy)
             dependency_obj_name = dependency_obj.dependency_obj.__name__
             cls.pop_all_references_to_dependency(dependency_graph_copy, dependency_obj_name)
             graph_node = cls.apply_dependencies(dependency_obj) if cls.is_resolvable_dependency(dependency_obj) else dependency_obj
@@ -38,9 +38,9 @@ class DependencyGraphResolver(object):
                                                    dependency != dependency_name]
 
     @staticmethod
-    def find_node_with_no_out_edges(dependency_graph):
+    def get_node_with_no_out_edges(dependency_graph):
         for dependency in dependency_graph.values():
             if not dependency.mutable_dependencies:
                 return dependency
         else:
-            raise BaseException("dependency graph has some unresolvable dependencies")
+            raise BaseException("dependency_primitives graph has some unresolvable dependencies")

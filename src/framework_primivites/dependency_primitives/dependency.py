@@ -14,7 +14,7 @@ class Dependency(MarionettePrimitive):
         self.treat_as_resolved_obj = False
 
     def __call__(self, decorated_obj):
-        # we need to take this algorithm into somne place else, question do we want the end caller to be in the dependency graph
+        # we need to take this algorithm into somne place else, question do we want the end caller to be in the dependency_primitives graph
         # do I need to do classmethod check here? Maybe because the class method itself (unbounded will not be callable). If a user does class
         # introspection and decides to decorate a classmethod accessed via __dict__ yeah
         DependencyValidationMethods.input_validation_for_dependency_obj(decorated_obj)

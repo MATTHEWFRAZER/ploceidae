@@ -11,7 +11,7 @@ class DependencyGraph(object):
 
     def add_node(self, dependency_graph_node):
         if dependency_graph_node.dependency_name in self.graph:
-            raise ValueError("dependency with name {0} already exists in dependency graph".format(dependency_graph_node.dependency_name))
+            raise ValueError("dependency_primitives with name {0} already exists in dependency_primitives graph".format(dependency_graph_node.dependency_name))
         self.graph[dependency_graph_node.dependency_name] = dependency_graph_node
 
     def get_node(self, node_name):

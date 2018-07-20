@@ -7,7 +7,7 @@ class TestDependencyGraph(object):
 
 
 class TestDependencyGraphNode(object):
-    @pytest.mark.skip(reason="the logic for checking for a dependency to have the __name__ attribute does not reside in the dependency graph node")
+    @pytest.mark.skip(reason="the logic for checking for a dependency_primitives to have the __name__ attribute does not reside in the dependency_primitives graph node")
     @pytest.mark.xfail(raises=ValueError)
     def test_dependency_graph_node_initialization_with_invalid_obj(self, dependency_graph_node):
         dependency_graph_node("invalid obj")

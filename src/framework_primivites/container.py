@@ -9,10 +9,8 @@ from framework_primivites.primitive_marker import MarionettePrimitive
 class Container(MarionettePrimitive):
 
     @classmethod
-    def wire_dependencies(self, obj_to_wire_up):
-        DependencyValidationMethods.input_validation_for_dependency_obj(obj_to_wire_up)
-        resolved_dependencies = DependencyGraphManager.resolve_dependencies(obj_to_wire_up)
-        return obj_to_wire_up(*resolved_dependencies)
+    def wire_dependencies(cls, obj_to_wire_up):
+        return cls.partial_wire_dependencies(obj_to_wire_up)()
 
     @classmethod
     def partial_wire_dependencies(cls, obj_to_wire_up, *dependencies_to_ignore):
