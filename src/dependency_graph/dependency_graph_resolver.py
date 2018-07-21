@@ -12,8 +12,12 @@ class DependencyGraphResolver(object):
             dependency_obj = cls.get_node_with_no_out_edges(dependency_graph_copy)
             dependency_obj_name = dependency_obj.dependency_obj.__name__
             cls.pop_all_references_to_dependency(dependency_graph_copy, dependency_obj_name)
-            graph_node = cls.apply_dependencies(dependency_obj) if cls.is_resolvable_dependency(dependency_obj) else dependency_obj
+            graph_node = cls.get_graph_node_from_dependenc_object(dependency_obj)
             cls.RESOLVED_DEPENDENCY_GRAPH[dependency_obj_name] = graph_node
+
+    @classmethod
+    def get_graph_node_from_dependenc_object(cls, dependency_obj):
+        return cls.apply_dependencies(dependency_obj) if cls.is_resolvable_dependency(dependency_obj) else dependency_obj
 
     @classmethod
     def is_resolvable_dependency(cls, dependency_obj):

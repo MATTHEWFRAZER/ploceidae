@@ -28,5 +28,18 @@ class Dependency(MarionettePrimitive):
 
         return nested
 
+    @classmethod
+    def control_initialization(cls, *args, **kwargs):
+        """
+        this makes it so that dependency can be invoked as a decorator without calling it with empty args. need args and
+        kwargs here because it needs to be called like __init__ or __call__
+        """
+        if kwargs:
+            # if we're calling it like __init__
+            return cls(**kwargs)
+        else:
+            # if we're calling it like __call__
+            return cls()(*args)
 
-dependency = Dependency
+
+dependency = Dependency.control_initialization
