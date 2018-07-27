@@ -1,0 +1,2 @@
+what? call marionette via a pseudo main? the question is... How would you define a main wherein no dependencies are defined?
+config. this would still need to point to some "main" or wiring... does it deliver an object? does it run a main loop? hmmm

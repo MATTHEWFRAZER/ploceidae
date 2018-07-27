@@ -1,0 +1,71 @@
+mk2:
+need it to be not so invasive,
+you can register dependencies in three ways: directly through decoration, or in configuration.py where you declare its module name and name,
+and dynamically
+
+you can declare dependencies that will overwrite predefined ones (means discovery has to happen)
+
+scoping...
+scope management is the hard part
+- were the keys enough?
+    the idea is that it will only reallocate a dependency if there is another key otherwise it will use a cached value
+    we need to not cache it though, we need to provide it, but delete the cache entry not the object.
+    how to know when to delete the cache object?
+     * things will be keyed by what they serve up to *
+     - never happens with session scope
+     - only happens with class scope when del class
+     - happens with instance scope when obj goes out of scope or del __del__
+     - function happens when the function exits
+     ---> detect these by decorating them at run time. Detect their classes or function or instance and decorate them
+
+
+
+
+
+
+
+
+
+
+how would a marionette main look? How do we want it to look? Also is there any value in having a marionette main?
+
+pros of marionette main: dependencies are resolved automatically. No coupling to marionette
+cons: you have a main that is not interpretable by python directly, will have tons of warnings in ide. need to rewrite main.
+      partial coupling can get complex,
+
+also question of parsing another python script... treat it as a path, have python exec it
+
+what do we do with cls, self and mcs? <- allow them to be resolved by inner in dependency defenition, but need a new impl of partial to achieve this
+
+what about if a dependency appears in another dependencies definition?
+
+what to do about lambda resolving to the name labmda no matter what
+
+
+
+
+can we add dependency at runtime? yes... will the resolution of dependencies still work?
+what do we want to do with dependency objects getting returned by "fixtures"
+what do we do about resolving dependencies after adding a new one at runtime?
+how to handle the () in the decorator?
+
+scoping:
+need to re-resolve for every time the dependency is delivered. simple enough, but that propogates...
+can you apply inappropriate scope... ie class and instance scope to function
+# decorated obj, callable obj, dependency obj <- make consistent name
+
+# resolved dependency graph needs to change to have cached values and the location. the thing is, its accessed directly as resolved dependency
+# maybe add level of indeciton... so dependency.locate_obj[key] and obj will resolve things
+
+JUST FOUND OUT THAT THOSE DEPENDENCIES WILL NEED TO BE RESOLVED ACROSS INSTANCES! (instance/function scope)
+- problem is how to get back specific instance of dependency
+
+also new feature: *args (what ever the name of arbitary arguments, those dependencies will be resolved to it if there in that category)
+################JUSTIFIED
+why not support args and kwargs? doesn't make any sense, you need to declare your dependencies kwargs and args are anonymous
+what to do about class objects? works
+what to do about instances? works
+can we do multiple partial injections? no point, you would cache the dependencies
+
+for now don't support having self as dependency
+what about case where
