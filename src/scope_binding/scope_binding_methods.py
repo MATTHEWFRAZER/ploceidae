@@ -42,5 +42,5 @@ class ScopeBindingMethods(object):
         elif scope == ScopeEnum.FUNCTION:
             return "{0}::{1}".format(obj.__self__, obj.__qualname__)
         else:
-            raise NotImplementedError("{0}".format(scope))
+            raise NotImplementedError("{0} not a valid scope".format(scope))
 

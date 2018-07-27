@@ -10,15 +10,13 @@ class DependencyGraphManager(DependencyGraphResolver):
     DEPENDENCY_GRAPH = DependencyGraph()
 
     @classmethod
-    def add_dependency(cls, callable_obj):
-        dependency_obj = cls.make_dependency_obj_from_callable(callable_obj)
+    def add_dependency(cls, dependency_obj):
         cls.DEPENDENCY_GRAPH.add_node(dependency_obj)
 
     @classmethod
-    def resolve_dependencies(cls, callable_obj, *dependencies_to_ignore):
+    def resolve_dependencies(cls, dependency_obj, *dependencies_to_ignore):
         if len(cls.DEPENDENCY_GRAPH) != len(cls.RESOLVED_DEPENDENCY_GRAPH):
             cls.resolve_dependency_graph(cls.DEPENDENCY_GRAPH)
-        dependency_obj = cls.make_dependency_obj_from_callable(callable_obj)
         dependencies = filter(lambda dependency: dependency not in dependencies_to_ignore, dependency_obj.dependencies)
         return [cls.get_dependency_obj_from_dependency_name(dependency) for dependency in dependencies]
 
@@ -51,11 +49,6 @@ class DependencyGraphManager(DependencyGraphResolver):
             return cls.RESOLVED_DEPENDENCY_GRAPH[dependency_name]
         except KeyError:
             raise ValueError("dependency_primitives {0} is not part of dependency_primitives graph".format(dependency_name))
-
-    @staticmethod
-    def make_dependency_obj_from_callable(callable_obj):
-        dependencies = [dependency for dependency in getargspec(callable_obj)[0] if dependency not in ("self", "mcs", "cls")]
-        return DependencyGraphNode(callable_obj, *dependencies)
 
     @staticmethod
     def node_has_no_in_edges(node, temp_graph):
