@@ -1,3 +1,5 @@
+from inspect import getmodulename
+
 from scope_binding.scope_enum import ScopeEnum
 
 
@@ -27,5 +29,18 @@ class ScopeBindingMethods(object):
             del resolved_dependency_graph[str(dependency_obj.obj)]
         dependency_obj.register_callback_after_function(del_entry_in_resolved_dependency_graph)
 
-    @staticmethod
-    def get_
+    @classmethod
+    def get_service_locator_key(cls, obj, scope):
+        if scope == ScopeEnum.SESSION:
+            return "null"
+        elif scope == ScopeEnum.MODULE:
+            return "{0}".format(getmodulename(obj))
+        elif scope == ScopeEnum.CLASS:
+            return "{0}".format(obj.__self__.__class__)
+        elif scope == ScopeEnum.INSTANCE:
+            return "{0}".format(obj.__self__)
+        elif scope == ScopeEnum.FUNCTION:
+            return "{0}::{1}".format(obj.__self__, obj.__qualname__)
+        else:
+            raise NotImplementedError("{0}".format(scope))
+
