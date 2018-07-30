@@ -1,39 +1,50 @@
 from inspect import getargspec
 
 from dependency_graph.dependency_graph_manager import DependencyGraphManager
-from framework_primivites.dependency_primitives.dependency_validation_methods import DependencyValidationMethods
+from framework_primivites.dependency_primitives.dependency_initialization_methods import DependencyInitializationMethods
 from framework_primivites.primitive_marker import MarionettePrimitive
 from scope_binding.scope_binding_methods import ScopeBindingMethods
 
-__all__ = ["dependency"]
+__all__ = ["dependency", "Dependency"]
 
 
 class Dependency(MarionettePrimitive):
     """decorator is a class object because that will make it easier to hook into later"""
 
     def __init__(self, **kwargs):
-        DependencyValidationMethods.input_validation_to_init(kwargs)
+        DependencyInitializationMethods.input_validation_to_init(kwargs)
         self.scope = kwargs.get("scope", "function")
-        self.treat_as_resolved_obj = False
 
-    def __call__(self, decorated_obj):
+    def __call__(self, dependency_obj):
         # we need to take this algorithm into somne place else, question do we want the end caller to be in the dependency_primitives graph
         # do I need to do classmethod check here? Maybe because the class method itself (unbounded will not be callable). If a user does class
         # introspection and decides to decorate a classmethod accessed via __dict__ yeah
-        self.decorated_obj = decorated_obj
-        self.dependencies = [dependency for dependency in getargspec(decorated_obj)[0] if dependency not in ("self", "mcs", "cls")]
-        DependencyValidationMethods.input_validation_for_dependency_obj(decorated_obj)
-
-        DependencyGraphManager.add_dependency(self)
-
-        ScopeBindingMethods.scope_binding_decorator(self, self.scope)
+        DependencyInitializationMethods.input_validation_for_dependency_obj(dependency_obj)
+        self.init_dependency_inner(dependency_obj)
 
         def nested(*unresolved_dependencies):
-            resolved_dependencies = DependencyGraphManager.resolve_dependencies(decorated_obj)
+            resolved_dependencies = DependencyGraphManager.resolve_dependencies(self)
             dependencies = unresolved_dependencies + resolved_dependencies
-            return decorated_obj(*dependencies)
+            return dependency_obj(*dependencies)
 
         return nested
+
+    def init_dependency_inner(self, dependency_obj):
+        self.treat_as_resolved_obj = False
+        self.dependency_obj = dependency_obj
+        self.dependencies = DependencyInitializationMethods.get_dependencies_from_callable_obj(dependency_obj, tuple())
+        self.dependency_name = dependency_obj.__name__
+        try:
+            DependencyGraphManager.add_dependency(self)
+        except ValueError:
+            pass#log
+        ScopeBindingMethods.scope_binding_decorator(DependencyGraphManager.RESOLVED_DEPENDENCY_GRAPH, self)
+
+    @classmethod
+    def get_dependency_from_dependency_obj(cls, dependency_obj, scope):
+        dependency = cls(scope=scope)
+        dependency.init_dependency_inner(dependency_obj)
+        return dependency
 
     @classmethod
     def control_initialization(cls, *args, **kwargs):

@@ -61,16 +61,13 @@ class TestDependencyGraphManager(object):
         self.add_dependencies(dependency_graph_manager, a, b)
 
     # do we want to test this behavior?
-    def test_resolve_dependencies_after_adding_dependency(self, dependency_graph_manager):
-        def a(): return "a"
-        def b(a): pass
-        assert not dependency_graph_manager.resolve_dependencies(a)
-        dependency_graph_manager.add_dependency(a)
-        assert dependency_graph_manager.resolve_dependencies(b)[0] == "a"
+    def test_resolve_dependencies_after_adding_dependency(self, dependency_graph, dependency_class_obj, dependency_graph_manager):
+        assert not dependency_graph_manager.resolve_dependencies(dependency_graph[-1])
+        dependency_graph_manager.add_dependency(dependency_graph[-1])
+        assert dependency_graph_manager.resolve_dependencies(dependency_graph[-2])[0] == dependency_graph[-1].dependency_obj.__name__
 
-    def test_resolve_dependencies_with_dependent_that_has_no_dependencies(self, dependency_graph_manager):
-        def a(): pass
-        assert not dependency_graph_manager.resolve_dependencies(a)
+    def test_resolve_dependencies_with_dependent_that_has_no_dependencies(self, dependency_graph, dependency_graph_manager):
+        assert not dependency_graph_manager.resolve_dependencies(dependency_graph[-1])
 
     @pytest.mark.skip(reason="the logic for checking for a dependency_primitives being a dependency_primitives to itself does not reside in the dependency_primitives graph manager")
     @pytest.mark.xfail(raises=ValueError)
@@ -83,7 +80,7 @@ class TestDependencyGraphManager(object):
         try:
             self.add_dependencies(dependency_graph_manager, *dependency_graph)
             dependencies = dependency_graph_manager.resolve_dependencies(dependency_graph[0])
-            dependency_graph[0](*dependencies)
+            dependency_graph[0].dependency_obj(*dependencies)
         except ValueError as ex:
             pytest.fail("dependency_primitives resolution failed:{0}".format(ex))
 

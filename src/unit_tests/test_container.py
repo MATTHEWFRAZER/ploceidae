@@ -20,7 +20,7 @@ class Dummy(object):
 class TestContainer(object):
 
     def test_dependencies_can_be_delivered_to_bound_method(self, container):
-        wired = container.wire_dependencies(Dummy(1, 2, 3).method)
+        wired = container.wire_dependencies(Dummy(1, 2, 3).method, "function")
         assert "abcbcc" == wired
 
     def test_dependencies_can_be_delivered_to_class_method(self, container):
@@ -28,13 +28,13 @@ class TestContainer(object):
         assert "abcbcc" == wired
 
     def test_partial_wire_up_dependencies_works_when_dependencies_to_ignore_is_empty(self, obj_to_wire_up, container):
-        wired = container.partial_wire_dependencies(obj_to_wire_up)
+        wired = container.partial_wire_dependencies(obj_to_wire_up.dependency_obj)
         assert "xabcbcc" == wired()
 
     # make sure that exceptions bubble up
     def test_wire_up_dependencies_with_obj_that_is_in_dependency_graph(self, obj_to_wire_up, container):
         try:
-            wired = container.wire_dependencies(obj_to_wire_up)
+            wired = container.wire_dependencies(obj_to_wire_up.dependency_obj)
         except Exception as ex:
             pytest.fail("exception occurred while wiring dependencies: {}".format(ex))
 
@@ -46,8 +46,8 @@ class TestContainer(object):
         container.wire_dependencies("invalid obj")
 
     def test_wire_up_dependencies_with_multiple_connected_components(self, obj_to_wire_up, obj_to_wire_up2, container2):
-        wired_up = container2.wire_dependencies(obj_to_wire_up)
-        wired_up2 = container2.wire_dependencies(obj_to_wire_up2)
+        wired_up = container2.wire_dependencies(obj_to_wire_up.dependency_obj)
+        wired_up2 = container2.wire_dependencies(obj_to_wire_up2.dependency_obj)
         assert wired_up == "xabcbcc"
         assert wired_up2 == "def"
 
@@ -59,9 +59,10 @@ class TestContainer(object):
         wired_up_call = container.wire_dependencies(Dummy("a", "b", "c"))
         assert wired_up_call == "abcbcc"
 
-    def test_wire_up_dependencies_with_missing_dependencies(self, container):
+    @pytest.mark.xfail(raises=BaseException)
+    def test_wire_up_dependencies_with_missing_dependencies(self, container_constructor):
         def a(b): pass
-        container.wire_dependencies(a)
+        container_constructor.wire_dependencies(a)
 
     def test_partial_wire_up_dependencies(self, partial_dependency_fixture):
 
@@ -83,5 +84,4 @@ class TestContainer(object):
             pytest.fail(". Ex {0}".format(ex))
         else:
             obj = partial_wired(*partial_dependency_fixture.left_over_dependencies)
-
         assert obj == "abcbcc"

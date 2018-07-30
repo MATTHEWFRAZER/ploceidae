@@ -8,7 +8,7 @@ class ScopeBindingMethods(object):
     def scope_binding_decorator(cls, resolved_dependency_graph, dependency_obj):
         if dependency_obj.scope == ScopeEnum.INSTANCE:
             cls.decorate_instance_obj(resolved_dependency_graph, dependency_obj.obj)
-        elif dependency_obj.scope == ScopeEnum.FUNCTION:
+        elif dependency_obj.scope == ScopeEnum.FUNCTION: pass
 
 
     @staticmethod

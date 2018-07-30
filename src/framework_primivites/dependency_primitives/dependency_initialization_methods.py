@@ -2,7 +2,7 @@ from inspect import getargspec
 from pprint import pformat
 
 
-class DependencyValidationMethods(object):
+class DependencyInitializationMethods(object):
     VALID_KWARGS = ("scope",)
 
     @classmethod
@@ -41,3 +41,7 @@ class DependencyValidationMethods(object):
     @classmethod
     def is_valid_key(cls, key):
         return key in cls.VALID_KWARGS
+
+    @staticmethod
+    def get_dependencies_from_callable_obj(callable_obj, *dependencies_to_ignore):
+        return [dependency for dependency in getargspec(callable_obj)[0] if dependency not in dependencies_to_ignore + ("self", "mcs", "cls")]

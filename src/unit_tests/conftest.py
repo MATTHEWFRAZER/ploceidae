@@ -3,16 +3,22 @@ import sys
 import pytest
 
 sys.path.append("..")
-from dependency_graph.dependency_graph import DependencyGraphNode
+from framework_primivites.dependency_primitives import dependency
 from dependency_graph.dependency_graph_manager import DependencyGraphManager
 from framework_primivites.container import Container
 from framework_primivites.dependency_primitives.dependency import dependency
+from framework_primivites.dependency_primitives.dependency import Dependency
 
+
+@pytest.fixture
+def dependency_class_obj():
+    return Dependency
 
 @pytest.fixture
 def dependency_graph_manager():
     yield DependencyGraphManager
     DependencyGraphManager.DEPENDENCY_GRAPH.clear()
+    DependencyGraphManager.IS_RESOLVED = False
 
 
 @pytest.fixture
@@ -26,37 +32,41 @@ def dependency_graph_with_cycle():
 
 
 @pytest.fixture
-def dependency_graph():
+def dependency_graph(dependency_init):
     def a(b): return "a" + b
     def b(c): return "b" + c
     def c(): return "c"
 
-    return a, b, c
+    return dependency_init(a, "function"), dependency_init(b, "function"), dependency_init(c, "function")
 
 
 @pytest.fixture
-def dependency_graph2():
+def dependency_graph2(dependency_init):
     def d(e): return "d" + e
     def e(f): return "e" + f
     def f(): return "f"
 
-    return d, e, f
+    return dependency_init(d, "function"), dependency_init(e, "function"), dependency_init(f, "function")
 
 
 @pytest.fixture
-def dependency_graph_with_obj_that_depends_on_all_other_nodes(dependency_graph):
+def dependency_graph_with_obj_that_depends_on_all_other_nodes(dependency_init, dependency_graph):
     def x(a, b, c): return "x" + a + b + c
-    return (x,) + dependency_graph
+    return (dependency_init(x, "function"),) + dependency_graph
 
 
 @pytest.fixture
-def dependency_graph_node_with_in_edges():
-    return DependencyGraphNode(lambda _: _, "a", "b", "c")
+def dependency_graph_node_with_in_edges(dependency_init):
+    return dependency_init(lambda _: _, "function")
 
 
 @pytest.fixture
-def dependency_graph_node_with_no_in_edges():
-    return DependencyGraphNode(lambda _: _)
+def dependency_graph_node_with_no_in_edges(dependency_init):
+    return dependency_init(lambda _: _, "function")
+
+@pytest.fixture
+def dependency_init(dependency_class_obj):
+    return dependency_class_obj.get_dependency_from_dependency_obj
 
 
 @pytest.fixture
@@ -65,6 +75,9 @@ def container(dependency_graph_with_obj_that_depends_on_all_other_nodes, depende
         dependency_graph_manager.add_dependency(dependency)
     return Container
 
+@pytest.fixture
+def container_constructor():
+    return Container
 
 @pytest.fixture
 def container2(dependency_graph2, dependency_graph_manager, container):
@@ -85,7 +98,7 @@ def obj_to_wire_up2(dependency_graph2):
 
 @pytest.fixture
 def dependency_graph_node():
-    return DependencyGraphNode
+    return None
 
 
 @pytest.fixture

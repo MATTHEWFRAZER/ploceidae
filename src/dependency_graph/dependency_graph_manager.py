@@ -1,13 +1,13 @@
-from inspect import getargspec
+from threading import RLock
 
 from dependency_graph.dependency_graph import DependencyGraph
-from dependency_graph.dependency_graph import DependencyGraphNode
 from dependency_graph.dependency_graph_resolver import DependencyGraphResolver
 
 
 class DependencyGraphManager(DependencyGraphResolver):
 
     DEPENDENCY_GRAPH = DependencyGraph()
+    IS_RESOLVED = False
 
     @classmethod
     def add_dependency(cls, dependency_obj):
@@ -15,7 +15,10 @@ class DependencyGraphManager(DependencyGraphResolver):
 
     @classmethod
     def resolve_dependencies(cls, dependency_obj, *dependencies_to_ignore):
-        if len(cls.DEPENDENCY_GRAPH) != len(cls.RESOLVED_DEPENDENCY_GRAPH):
+        #if len(cls.DEPENDENCY_GRAPH) != len(cls.RESOLVED_DEPENDENCY_GRAPH):
+        #    cls.resolve_dependency_graph(cls.DEPENDENCY_GRAPH)
+        if not cls.IS_RESOLVED:
+            cls.IS_RESOLVED = True
             cls.resolve_dependency_graph(cls.DEPENDENCY_GRAPH)
         dependencies = filter(lambda dependency: dependency not in dependencies_to_ignore, dependency_obj.dependencies)
         return [cls.get_dependency_obj_from_dependency_name(dependency) for dependency in dependencies]

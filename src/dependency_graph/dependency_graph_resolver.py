@@ -10,7 +10,7 @@ class DependencyGraphResolver(object):
         dependency_graph_copy = {key : DependencyWithMutableDependencies(value) for key, value in dependency_graph.items()}
         while dependency_graph_copy:
             dependency_obj = cls.get_node_with_no_out_edges(dependency_graph_copy)
-            dependency_obj_name = dependency_obj.dependency_obj.__name__
+            dependency_obj_name = dependency_obj.dependency_name
             cls.pop_all_references_to_dependency(dependency_graph_copy, dependency_obj_name)
             graph_node = cls.get_graph_node_from_dependency_object(dependency_obj)
             cls.RESOLVED_DEPENDENCY_GRAPH[dependency_obj_name] = graph_node
