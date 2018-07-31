@@ -14,6 +14,7 @@ class Dependency(MarionettePrimitive):
     def __init__(self, **kwargs):
         DependencyInitializationMethods.input_validation_to_init(kwargs)
         self.scope = kwargs.get("scope", "function")
+        self.callbacks = []
 
     def __call__(self, dependency_obj):
         # we need to take this algorithm into somne place else, question do we want the end caller to be in the dependency_primitives graph
@@ -27,7 +28,7 @@ class Dependency(MarionettePrimitive):
             dependencies = unresolved_dependencies + resolved_dependencies
             return dependency_obj(*dependencies)
 
-        return nested
+        return self.invoke_callbacks_after(nested)
 
     def init_dependency_inner(self, dependency_obj):
         self.treat_as_resolved_obj = False
@@ -39,6 +40,16 @@ class Dependency(MarionettePrimitive):
         except ValueError:
             pass#log
         ScopeBindingMethods.scope_binding_decorator(DependencyGraphManager.RESOLVED_DEPENDENCY_GRAPH, self)
+
+    def invoke_callbacks_after(self, func):
+        def nested(*unresolved_dependencies):
+            cached = func(*unresolved_dependencies)
+            for callback in self.callbacks: callback()
+            return cached
+        return nested
+
+    def register_callback_after_function(self, callback):
+        self.callbacks.append(callback)
 
     @classmethod
     def get_dependency_from_dependency_obj(cls, dependency_obj, scope):
