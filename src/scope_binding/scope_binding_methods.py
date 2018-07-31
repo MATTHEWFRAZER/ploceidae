@@ -17,16 +17,16 @@ class ScopeBindingMethods(object):
             obj_instance = obj.__self__
         except AttributeError:
             raise ValueError("{} is not bound to class instance, and can not be defined with instance scope")
-        def new_del(self_ref):
+        def new_del(_):
             if hasattr(obj, "__del__"):
                 obj_instance.__del__()
-            del resolved_dependency_graph[str(obj)]
+            del resolved_dependency_graph[obj.__name__].delete_from_scope(ScopeEnum.INSTANCE)
         obj_instance.__class__.__del__ = new_del
 
     @staticmethod
     def decorate_function(resolved_dependency_graph, dependency_obj):
         def del_entry_in_resolved_dependency_graph():
-            del resolved_dependency_graph[str(dependency_obj.obj)]
+            del resolved_dependency_graph[dependency_obj.obj.__name__].delete_from_scope(ScopeEnum.FUNCTION)
         dependency_obj.register_callback_after_function(del_entry_in_resolved_dependency_graph)
 
     @classmethod

@@ -4,6 +4,7 @@ you can register dependencies in three ways: directly through decoration, or in 
 and dynamically
 
 you can declare dependencies that will overwrite predefined ones (means discovery has to happen)
+ - only in the local module, can't go through sys.modules. nah uh
 
 scoping...
 scope management is the hard part
