@@ -20,13 +20,13 @@ class ScopeBindingMethods(object):
         def new_del(_):
             if hasattr(obj, "__del__"):
                 obj_instance.__del__()
-            del resolved_dependency_graph[obj.__name__].delete_from_scope(ScopeEnum.INSTANCE)
+            resolved_dependency_graph[obj.__name__].delete_from_scope(ScopeEnum.INSTANCE)
         obj_instance.__class__.__del__ = new_del
 
     @staticmethod
     def decorate_function(resolved_dependency_graph, dependency_obj):
         def del_entry_in_resolved_dependency_graph():
-            del resolved_dependency_graph[dependency_obj.obj.__name__].delete_from_scope(ScopeEnum.FUNCTION)
+            resolved_dependency_graph[dependency_obj.obj.__name__].delete_from_scope(ScopeEnum.FUNCTION)
         dependency_obj.register_callback_after_function(del_entry_in_resolved_dependency_graph)
 
     @classmethod
