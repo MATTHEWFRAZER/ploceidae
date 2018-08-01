@@ -1,15 +1,15 @@
-from inspect import getargspec
-
 from dependency_graph.dependency_graph_manager import DependencyGraphManager
 from framework_primivites.dependency_primitives.dependency_initialization_methods import DependencyInitializationMethods
 from framework_primivites.primitive_marker import MarionettePrimitive
 from scope_binding.scope_binding_methods import ScopeBindingMethods
+from scope_binding.scope_key import ScopeKey
 
 __all__ = ["dependency", "Dependency"]
 
 
 class Dependency(MarionettePrimitive):
     """decorator is a class object because that will make it easier to hook into later"""
+    SERVICES = {}
 
     def __init__(self, **kwargs):
         DependencyInitializationMethods.input_validation_to_init(kwargs)
@@ -24,7 +24,7 @@ class Dependency(MarionettePrimitive):
         self.init_dependency_inner(dependency_obj)
 
         def nested(*unresolved_dependencies):
-            resolved_dependencies = DependencyGraphManager.resolve_dependencies(self)
+            resolved_dependencies = DependencyGraphManager.resolve_dependencies(self, ScopeKey(dependency_obj, self.scope))
             dependencies = unresolved_dependencies + resolved_dependencies
             return dependency_obj(*dependencies)
 
@@ -35,11 +35,17 @@ class Dependency(MarionettePrimitive):
         self.dependency_obj = dependency_obj
         self.dependencies = DependencyInitializationMethods.get_dependencies_from_callable_obj(dependency_obj, tuple())
         self.dependency_name = dependency_obj.__name__
+        scope_key = ScopeKey(dependency_obj, self.scope)
         try:
-            DependencyGraphManager.add_dependency(self)
+            DependencyGraphManager.add_dependency(self, str(scope_key))
         except ValueError:
             pass#log
-        ScopeBindingMethods.scope_binding_decorator(DependencyGraphManager.RESOLVED_DEPENDENCY_GRAPH, self)
+        ScopeBindingMethods.scope_binding_decorator(DependencyGraphManager.RESOLVED_DEPENDENCY_GRAPH, self, scope_key)
+
+    def add_dependency_to_services(self, scope_key):
+        if scope_key in self.SERVICES:
+            raise ValueError("dependency with scope key {0} already exists".format(str(scope_key)))
+        self.SERVICES[str(scope_key)] = self
 
     def invoke_callbacks_after(self, func):
         def nested(*unresolved_dependencies):
@@ -51,8 +57,11 @@ class Dependency(MarionettePrimitive):
     def register_callback_after_function(self, callback):
         self.callbacks.append(callback)
 
+    def delete_entry_from_service_locator(self, scope_key):
+        del self.SERVICES[scope_key]
+
     @classmethod
-    def get_dependency_from_dependency_obj(cls, dependency_obj, scope):
+    def get_dependency_without_decoration(cls, dependency_obj, scope):
         dependency = cls(scope=scope)
         dependency.init_dependency_inner(dependency_obj)
         return dependency

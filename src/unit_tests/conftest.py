@@ -8,6 +8,7 @@ from dependency_graph.dependency_graph_manager import DependencyGraphManager
 from framework_primivites.container import Container
 from framework_primivites.dependency_primitives.dependency import dependency
 from framework_primivites.dependency_primitives.dependency import Dependency
+from scope_binding.scope_key import ScopeKey
 
 
 @pytest.fixture
@@ -66,13 +67,13 @@ def dependency_graph_node_with_no_in_edges(dependency_init):
 
 @pytest.fixture
 def dependency_init(dependency_class_obj):
-    return dependency_class_obj.get_dependency_from_dependency_obj
+    return dependency_class_obj.get_dependency_without_decoration
 
 
 @pytest.fixture
 def container(dependency_graph_with_obj_that_depends_on_all_other_nodes, dependency_graph_manager):
     for dependency in dependency_graph_with_obj_that_depends_on_all_other_nodes:
-        dependency_graph_manager.add_dependency(dependency)
+        dependency_graph_manager.add_dependency(dependency, ScopeKey(dependency, "function"))
     return Container
 
 @pytest.fixture
@@ -82,7 +83,7 @@ def container_constructor():
 @pytest.fixture
 def container2(dependency_graph2, dependency_graph_manager, container):
     for dependency in dependency_graph2:
-        dependency_graph_manager.add_dependency(dependency)
+        dependency_graph_manager.add_dependency(dependency, ScopeKey(dependency, "function"))
     return container
 
 

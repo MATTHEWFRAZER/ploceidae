@@ -6,8 +6,8 @@ class DependencyGraphResolver(object):
     RESOLVED_DEPENDENCY_GRAPH = {}
 
     @classmethod
-    def resolve_dependency_graph(cls, dependency_graph):
-        dependency_graph_copy = {key : DependencyWithMutableDependencies(value) for key, value in dependency_graph.items()}
+    def resolve_dependency_graph(cls, dependency_graph, scope_key_string):
+        dependency_graph_copy = {key : DependencyWithMutableDependencies(value[scope_key_string]) for key, value in dependency_graph.items(scope_key_string)}
         while dependency_graph_copy:
             dependency_obj = cls.get_node_with_no_out_edges(dependency_graph_copy)
             dependency_obj_name = dependency_obj.dependency_name
