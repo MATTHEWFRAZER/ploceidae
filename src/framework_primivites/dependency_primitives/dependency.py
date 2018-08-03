@@ -9,7 +9,6 @@ __all__ = ["dependency", "Dependency"]
 
 class Dependency(MarionettePrimitive):
     """decorator is a class object because that will make it easier to hook into later"""
-    SERVICES = {}
 
     def __init__(self, **kwargs):
         DependencyInitializationMethods.input_validation_to_init(kwargs)
@@ -54,7 +53,7 @@ class Dependency(MarionettePrimitive):
     def add_dependency_to_services(self, scope_key):
         if scope_key in self.SERVICES:
             raise ValueError("dependency with scope key {0} already exists".format(str(scope_key)))
-        self.SERVICES[str(scope_key)] = self
+        self.services[str(scope_key)] = self
 
     def invoke_callbacks_after(self, func):
         def nested(*unresolved_dependencies):
@@ -67,7 +66,7 @@ class Dependency(MarionettePrimitive):
         self.callbacks.append(callback)
 
     def delete_entry_from_service_locator(self, scope_key):
-        del self.SERVICES[scope_key]
+        del self.services[scope_key]
 
     @classmethod
     def get_dependency_without_decoration(cls, dependency_obj, scope):
