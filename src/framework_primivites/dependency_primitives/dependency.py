@@ -15,6 +15,7 @@ class Dependency(MarionettePrimitive):
         DependencyInitializationMethods.input_validation_to_init(kwargs)
         self.scope = kwargs.get("scope", "function")
         self.callbacks = []
+        self.services = {}
 
     def __call__(self, dependency_obj):
         # we need to take this algorithm into somne place else, question do we want the end caller to be in the dependency_primitives graph
@@ -22,6 +23,13 @@ class Dependency(MarionettePrimitive):
         # introspection and decides to decorate a classmethod accessed via __dict__ yeah
         DependencyInitializationMethods.input_validation_for_dependency_obj(dependency_obj)
         self.init_dependency_inner(dependency_obj)
+
+        try:
+            DependencyGraphManager.add_dependency(self)
+        except ValueError:
+            pass#log
+        scope_key = ScopeKey(dependency_obj, self.scope)
+        ScopeBindingMethods.scope_binding_decorator(DependencyGraphManager.RESOLVED_DEPENDENCY_GRAPH, self, scope_key)
 
         def nested(*unresolved_dependencies):
             resolved_dependencies = DependencyGraphManager.resolve_dependencies(self, ScopeKey(dependency_obj, self.scope))
@@ -35,12 +43,13 @@ class Dependency(MarionettePrimitive):
         self.dependency_obj = dependency_obj
         self.dependencies = DependencyInitializationMethods.get_dependencies_from_callable_obj(dependency_obj, tuple())
         self.dependency_name = dependency_obj.__name__
-        scope_key = ScopeKey(dependency_obj, self.scope)
-        try:
-            DependencyGraphManager.add_dependency(self, str(scope_key))
-        except ValueError:
-            pass#log
-        ScopeBindingMethods.scope_binding_decorator(DependencyGraphManager.RESOLVED_DEPENDENCY_GRAPH, self, scope_key)
+
+
+    def locate(self, scope_key_string, *resolved_dependencies):
+        if scope_key_string not in self.services:
+            self.services[scope_key_string] = self.dependency_obj(*resolved_dependencies)
+        return self.services[scope_key_string]
+
 
     def add_dependency_to_services(self, scope_key):
         if scope_key in self.SERVICES:

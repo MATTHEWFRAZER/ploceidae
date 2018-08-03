@@ -7,17 +7,17 @@ class DependencyGraphResolver(object):
 
     @classmethod
     def resolve_dependency_graph(cls, dependency_graph, scope_key_string):
-        dependency_graph_copy = {key : DependencyWithMutableDependencies(value[scope_key_string]) for key, value in dependency_graph.items(scope_key_string)}
+        dependency_graph_copy = {key : DependencyWithMutableDependencies(value) for key, value in dependency_graph.items()}
         while dependency_graph_copy:
             dependency_obj = cls.get_node_with_no_out_edges(dependency_graph_copy)
             dependency_obj_name = dependency_obj.dependency_name
             cls.pop_all_references_to_dependency(dependency_graph_copy, dependency_obj_name)
-            graph_node = cls.get_graph_node_from_dependency_object(dependency_obj)
+            graph_node = cls.get_graph_node_from_dependency_object(dependency_obj, scope_key_string)
             cls.RESOLVED_DEPENDENCY_GRAPH[dependency_obj_name] = graph_node
 
     @classmethod
-    def get_graph_node_from_dependency_object(cls, dependency_obj):
-        return cls.apply_dependencies(dependency_obj) if cls.is_resolvable_dependency(dependency_obj) else dependency_obj
+    def get_graph_node_from_dependency_object(cls, dependency_obj, scope_key_string):
+        return cls.apply_dependencies(dependency_obj, scope_key_string) if cls.is_resolvable_dependency(dependency_obj) else dependency_obj
 
     @classmethod
     def is_resolvable_dependency(cls, dependency_obj):
@@ -30,9 +30,9 @@ class DependencyGraphResolver(object):
         return obj_type.__name__ == "Dependency" and issubclass(obj_type, MarionettePrimitive) and not obj.treat_as_resolved_obj
 
     @classmethod
-    def apply_dependencies(cls, dependency_obj):
+    def apply_dependencies(cls, dependency_obj, scope_key_string):
         resolved_dependencies = [cls.RESOLVED_DEPENDENCY_GRAPH[dependency] for dependency in dependency_obj.dependencies]
-        return dependency_obj.dependency_obj(*resolved_dependencies)
+        return dependency_obj.locate(scope_key_string, *resolved_dependencies)
 
     @staticmethod
     def pop_all_references_to_dependency(dependency_graph, dependency_name):

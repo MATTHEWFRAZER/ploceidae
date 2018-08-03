@@ -23,13 +23,13 @@ def dependency_graph_manager():
 
 
 @pytest.fixture
-def dependency_graph_with_cycle():
+def dependency_graph_with_cycle(dependency_init):
     # permute these
     def a(b): pass
     def b(c): pass
     def c(a): pass
 
-    return a, b, c
+    return dependency_init(a, "function"), dependency_init(b, "function"), dependency_init(c, "function")
 
 
 @pytest.fixture
@@ -40,6 +40,9 @@ def dependency_graph(dependency_init):
 
     return dependency_init(a, "function"), dependency_init(b, "function"), dependency_init(c, "function")
 
+@pytest.fixture
+def scope_key():
+    return ScopeKey
 
 @pytest.fixture
 def dependency_graph2(dependency_init):
@@ -63,7 +66,7 @@ def dependency_graph_node_with_in_edges(dependency_init):
 
 @pytest.fixture
 def dependency_graph_node_with_no_in_edges(dependency_init):
-    return dependency_init(lambda _: _, "function")
+    return dependency_init(lambda: None, "function")
 
 @pytest.fixture
 def dependency_init(dependency_class_obj):
@@ -73,7 +76,7 @@ def dependency_init(dependency_class_obj):
 @pytest.fixture
 def container(dependency_graph_with_obj_that_depends_on_all_other_nodes, dependency_graph_manager):
     for dependency in dependency_graph_with_obj_that_depends_on_all_other_nodes:
-        dependency_graph_manager.add_dependency(dependency, ScopeKey(dependency, "function"))
+        dependency_graph_manager.add_dependency(dependency)
     return Container
 
 @pytest.fixture
@@ -83,7 +86,7 @@ def container_constructor():
 @pytest.fixture
 def container2(dependency_graph2, dependency_graph_manager, container):
     for dependency in dependency_graph2:
-        dependency_graph_manager.add_dependency(dependency, ScopeKey(dependency, "function"))
+        dependency_graph_manager.add_dependency(dependency)
     return container
 
 
