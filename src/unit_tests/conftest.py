@@ -81,6 +81,9 @@ def container(dependency_graph_with_obj_that_depends_on_all_other_nodes, depende
 
 @pytest.fixture
 def container_constructor():
+    DependencyGraphManager.DEPENDENCY_GRAPH.clear()
+    DependencyGraphManager.RESOLVED_DEPENDENCY_GRAPH.clear()
+    DependencyGraphManager.IS_RESOLVED = False
     return Container
 
 @pytest.fixture
