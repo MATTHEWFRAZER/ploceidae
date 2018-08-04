@@ -1,4 +1,4 @@
-from inspect import getargspec
+from threading import RLock
 
 from dependency_graph.dependency_graph import DependencyGraph
 from dependency_graph.dependency_graph_resolver import DependencyGraphResolver
@@ -7,17 +7,20 @@ from dependency_graph.dependency_graph_resolver import DependencyGraphResolver
 class DependencyGraphManager(DependencyGraphResolver):
 
     DEPENDENCY_GRAPH = DependencyGraph()
+    LOCK = RLock()
 
     @classmethod
     def add_dependency(cls, dependency_obj):
-        cls.DEPENDENCY_GRAPH.add_node(dependency_obj)
+        with cls.LOCK:
+            cls.DEPENDENCY_GRAPH.add_node(dependency_obj)
 
     @classmethod
     def resolve_dependencies(cls, dependency_obj, scope_key_string, *dependencies_to_ignore):
-        if len(cls.DEPENDENCY_GRAPH) != len(cls.RESOLVED_DEPENDENCY_GRAPH):
-            cls.resolve_dependency_graph(cls.DEPENDENCY_GRAPH, scope_key_string)
-        dependencies = filter(lambda dependency: dependency not in dependencies_to_ignore, dependency_obj.dependencies)
-        return [cls.get_dependency_obj_from_dependency_name(dependency) for dependency in dependencies]
+        with cls.LOCK:
+            if len(cls.DEPENDENCY_GRAPH) != len(cls.RESOLVED_DEPENDENCY_GRAPH):
+                cls.resolve_dependency_graph(cls.DEPENDENCY_GRAPH, scope_key_string)
+            dependencies = filter(lambda dependency: dependency not in dependencies_to_ignore, dependency_obj.dependencies)
+            return [cls.get_dependency_obj_from_dependency_name(dependency) for dependency in dependencies]
 
     @classmethod
     def dependency_graph_is_acyclic(cls, dependency_graph):
@@ -44,10 +47,11 @@ class DependencyGraphManager(DependencyGraphResolver):
 
     @classmethod
     def get_dependency_obj_from_dependency_name(cls, dependency_name):
-        try:
-            return cls.RESOLVED_DEPENDENCY_GRAPH[dependency_name]
-        except KeyError:
-            raise ValueError("dependency_primitives {0} is not part of dependency_primitives graph".format(dependency_name))
+        with cls.LOCK:
+            try:
+                return cls.RESOLVED_DEPENDENCY_GRAPH[dependency_name]
+            except KeyError:
+                raise ValueError("dependency_primitives {0} is not part of dependency_primitives graph".format(dependency_name))
 
     @staticmethod
     def node_has_no_in_edges(node, temp_graph):
