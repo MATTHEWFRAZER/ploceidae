@@ -21,24 +21,25 @@ class Dependency(MarionettePrimitive, DependencyServiceLocator):
         # do I need to do classmethod check here? Maybe because the class method itself (unbounded will not be callable). If a user does class
         # introspection and decides to decorate a classmethod accessed via __dict__ yeah
         DependencyInitializationMethods.input_validation_for_dependency_obj(dependency_obj)
-        self.init_dependency_inner(dependency_obj)
-
-        try:
-            DependencyGraphManager.add_dependency(self)
-        except ValueError:
-            pass#log
         scope_key = ScopeKey(dependency_obj, self.scope)
         ScopeBindingMethods.scope_binding_decorator(DependencyGraphManager.RESOLVED_DEPENDENCY_GRAPH, self, scope_key)
 
         def nested(*unresolved_dependencies):
             resolved_dependencies = DependencyGraphManager.resolve_dependencies(self, ScopeKey(dependency_obj, self.scope))
-            dependencies = unresolved_dependencies + resolved_dependencies
+            dependencies = unresolved_dependencies + tuple(resolved_dependencies)
             return dependency_obj(*dependencies)
 
-        return self.invoke_callbacks_after(nested)
+        nested = self.invoke_callbacks_after(nested)
+        nested.__name__ = dependency_obj.__name__
+        self.init_dependency_inner(nested)
+        try:
+            DependencyGraphManager.add_dependency(self)
+        except ValueError:
+            pass#log
+        return dependency_obj
 
     def init_dependency_inner(self, dependency_obj):
-        super(Dependency, self).__init__(dependency_obj)
+        super(Dependency, self).__init__(self.scope, dependency_obj)
         self.treat_as_resolved_obj = False
         self.dependencies = DependencyInitializationMethods.get_dependencies_from_callable_obj(dependency_obj, tuple())
         self.dependency_name = dependency_obj.__name__

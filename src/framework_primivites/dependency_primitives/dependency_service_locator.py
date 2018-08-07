@@ -1,5 +1,8 @@
+from scope_binding.scope_enum import ScopeEnum
+
 class DependencyServiceLocator(object):
-    def __init__(self, dependency_obj):
+    def __init__(self, scope, dependency_obj):
+        self.scope = scope
         self.services = {}
         self.dependency_obj = dependency_obj
 
@@ -7,8 +10,11 @@ class DependencyServiceLocator(object):
         del self.services[scope_key]
 
     def locate(self, scope_key_string, *resolved_dependencies):
+        cached = self.dependency_obj(*resolved_dependencies)
+        if self.scope == ScopeEnum.FUNCTION:
+            return cached
         if scope_key_string not in self.services:
-            self.services[scope_key_string] = self.dependency_obj(*resolved_dependencies)
+            self.services[scope_key_string] = cached
         return self.services[scope_key_string]
 
 

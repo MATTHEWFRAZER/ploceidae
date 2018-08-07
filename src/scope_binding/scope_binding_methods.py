@@ -6,8 +6,6 @@ class ScopeBindingMethods(object):
     def scope_binding_decorator(cls, resolved_dependency_graph, dependency_obj, scope_key):
         if scope_key.scope == ScopeEnum.INSTANCE:
             cls.decorate_instance_obj(resolved_dependency_graph, dependency_obj.obj, scope_key)
-        elif scope_key.scope == ScopeEnum.FUNCTION:
-            cls.decorate_function(resolved_dependency_graph, dependency_obj, scope_key)
 
     @staticmethod
     def decorate_instance_obj(resolved_dependency_graph, obj, scope_key):
@@ -21,8 +19,3 @@ class ScopeBindingMethods(object):
             resolved_dependency_graph[obj.__name__].delete_entry_from_service_locator(str(scope_key))
         obj_instance.__class__.__del__ = new_del
 
-    @staticmethod
-    def decorate_function(resolved_dependency_graph, dependency_obj, scope_key):
-        def del_entry_in_resolved_dependency_graph():
-            resolved_dependency_graph[dependency_obj.obj.__name__].delete_entry_from_service_locator(str(scope_key))
-        dependency_obj.register_callback_after_function(del_entry_in_resolved_dependency_graph)
