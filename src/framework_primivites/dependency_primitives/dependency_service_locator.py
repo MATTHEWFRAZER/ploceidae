@@ -1,4 +1,5 @@
 from scope_binding.scope_key import ScopeKey
+from scope_binding.scope_enum import ScopeEnum
 
 class DependencyServiceLocator(object):
     def __init__(self, scope, dependency_obj):
@@ -16,9 +17,9 @@ class DependencyServiceLocator(object):
 
     def locate(self, scope_key_string, *resolved_dependencies):
         try:
-            #import pdb; pdb.set_trace()
             return self.services[scope_key_string]
         except KeyError:
             cached = self.dependency_obj(*resolved_dependencies)
-            self.services[scope_key_string] = cached
+            if self.scope != ScopeEnum.FUNCTION:
+                self.services[scope_key_string] = cached
             return cached

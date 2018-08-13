@@ -19,11 +19,14 @@ class DependencyGraphManager(DependencyGraphResolver):
     @classmethod
     def resolve_dependencies(cls, dependency_obj, scope_key_string, *dependencies_to_ignore):
         with cls.LOCK:
-            if dependency_obj.services.get(scope_key_string, SentinalForServiceLocatorCheck) is SentinalForServiceLocatorCheck:
-                cls.resolve_dependency_graph(cls.DEPENDENCY_GRAPH, scope_key_string)
             dependencies = filter(lambda dependency: dependency not in dependencies_to_ignore, dependency_obj.dependencies)
-            resolved_dependencies = [cls.get_dependency_obj_from_dependency_name(dependency).locate(scope_key_string) for dependency in dependencies]
+            resolved_dependencies = []
+            for dependency in dependencies:
+                if not cls.DEPENDENCY_GRAPH[dependency].dependencies:
+                    resolved_dependencies.append(cls.DEPENDENCY_GRAPH[dependency].locate(scope_key_string))
+                resolved_dependencies.extend(cls.resolve_dependencies(cls.get_dependency_obj_from_dependency_name(dependency), scope_key_string))
             cls.purge_dependency_graph_of_function_scope_keys()
+            #import pdb; pdb.set_trace()
             return resolved_dependencies
 
     @classmethod
