@@ -13,8 +13,14 @@ class DependencyGraph(object):
     def clear(self):
         self.graph.clear()
 
+    def get(self, node):
+        return self.graph.get(node)
+
     def copy(self):
         return self.graph.copy()
+
+    def values(self):
+        return self.graph.values()
 
     def __contains__(self, item):
         return item in self.graph

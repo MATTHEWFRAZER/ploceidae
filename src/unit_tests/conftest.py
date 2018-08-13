@@ -19,8 +19,6 @@ def dependency_class_obj():
 def dependency_graph_manager():
     yield DependencyGraphManager
     DependencyGraphManager.DEPENDENCY_GRAPH.clear()
-    DependencyGraphManager.IS_RESOLVED = False
-
 
 @pytest.fixture
 def dependency_graph_with_cycle(dependency_init):
@@ -82,8 +80,6 @@ def container(dependency_graph_with_obj_that_depends_on_all_other_nodes, depende
 @pytest.fixture
 def container_constructor():
     DependencyGraphManager.DEPENDENCY_GRAPH.clear()
-    DependencyGraphManager.RESOLVED_DEPENDENCY_GRAPH.clear()
-    DependencyGraphManager.IS_RESOLVED = False
     return Container
 
 @pytest.fixture
@@ -114,7 +110,7 @@ def dependency_decorator():
     DependencyGraphManager.DEPENDENCY_GRAPH.clear()
 
 
-@pytest.fixture(params=[(("a",), ("abc",)), (("b",), ("bc",)), (("a", "b"), ("abc", "bc"))])
+@pytest.fixture(params=[(("b",), ("bc",))])#[(("a",), ("abc",)), (("b",), ("bc",)), (("a", "b"), ("abc", "bc"))])
 def partial_dependency_fixture(request, container):
     attributes = {"ignored_dependencies": request.param[0], "left_over_dependencies": request.param[1], "container": container}
     return type("PartialDependencyFixture", (), attributes)

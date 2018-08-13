@@ -25,3 +25,7 @@ class ScopeKey(object):
             return "{0}::{1}".format(instance_binding, self.obj.__qualname__)
         else:
             raise NotImplementedError("{0} not a valid scope".format(self.scope))
+
+    @staticmethod
+    def is_function_scope(scope_key):
+        return "::" in scope_key.scope

@@ -2,13 +2,14 @@ from threading import RLock
 
 from dependency_graph.dependency_graph import DependencyGraph
 from dependency_graph.dependency_graph_resolver import DependencyGraphResolver
+from scope_binding.scope_key import ScopeKey
 
+class SentinalForServiceLocatorCheck(object): pass
 
 class DependencyGraphManager(DependencyGraphResolver):
 
     DEPENDENCY_GRAPH = DependencyGraph()
     LOCK = RLock()
-    IS_RESOLVED = False
 
     @classmethod
     def add_dependency(cls, dependency_obj):
@@ -18,11 +19,17 @@ class DependencyGraphManager(DependencyGraphResolver):
     @classmethod
     def resolve_dependencies(cls, dependency_obj, scope_key_string, *dependencies_to_ignore):
         with cls.LOCK:
-            if not cls.IS_RESOLVED:# <-- can not use this method, will skip over something that needs re-resolution #len(cls.DEPENDENCY_GRAPH) != len(cls.RESOLVED_DEPENDENCY_GRAPH):
-                cls.IS_RESOLVED = True
+            if dependency_obj.services.get(scope_key_string, SentinalForServiceLocatorCheck) is SentinalForServiceLocatorCheck:
                 cls.resolve_dependency_graph(cls.DEPENDENCY_GRAPH, scope_key_string)
             dependencies = filter(lambda dependency: dependency not in dependencies_to_ignore, dependency_obj.dependencies)
-            return [cls.get_dependency_obj_from_dependency_name(dependency) for dependency in dependencies]
+            resolved_dependencies = [cls.get_dependency_obj_from_dependency_name(dependency).locate(scope_key_string) for dependency in dependencies]
+            cls.purge_dependency_graph_of_function_scope_keys()
+            return resolved_dependencies
+
+    @classmethod
+    def purge_dependency_graph_of_function_scope_keys(cls):
+        for dependency_obj in cls.DEPENDENCY_GRAPH.values():
+            dependency_obj.purge_service_locator_of_function_scope_keys()
 
     @classmethod
     def dependency_graph_is_acyclic(cls, dependency_graph):
@@ -51,7 +58,7 @@ class DependencyGraphManager(DependencyGraphResolver):
     def get_dependency_obj_from_dependency_name(cls, dependency_name):
         with cls.LOCK:
             try:
-                return cls.RESOLVED_DEPENDENCY_GRAPH[dependency_name]
+                return cls.DEPENDENCY_GRAPH[dependency_name]
             except KeyError:
                 raise ValueError("dependency_primitives {0} is not part of dependency_primitives graph".format(dependency_name))
 

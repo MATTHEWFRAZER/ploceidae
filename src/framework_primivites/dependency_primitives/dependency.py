@@ -22,7 +22,7 @@ class Dependency(MarionettePrimitive, DependencyServiceLocator):
         # introspection and decides to decorate a classmethod accessed via __dict__ yeah
         DependencyInitializationMethods.input_validation_for_dependency_obj(dependency_obj)
         scope_key = ScopeKey(dependency_obj, self.scope)
-        ScopeBindingMethods.scope_binding_decorator(DependencyGraphManager.RESOLVED_DEPENDENCY_GRAPH, self, scope_key)
+        ScopeBindingMethods.scope_binding_decorator(DependencyGraphManager.DEPENDENCY_GRAPH, self, scope_key)
 
         def nested(*unresolved_dependencies):
             resolved_dependencies = DependencyGraphManager.resolve_dependencies(self, ScopeKey(dependency_obj, self.scope))
