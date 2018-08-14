@@ -19,6 +19,8 @@ class DependencyServiceLocator(object):
         try:
             return self.services[scope_key_string]
         except KeyError:
+            if "x" == self.dependency_name:
+                import pdb; pdb.set_trace()
             cached = self.dependency_obj(*resolved_dependencies)
             if self.scope != ScopeEnum.FUNCTION:
                 self.services[scope_key_string] = cached

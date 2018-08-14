@@ -24,9 +24,11 @@ class DependencyGraphManager(DependencyGraphResolver):
             for dependency in dependencies:
                 if not cls.DEPENDENCY_GRAPH[dependency].dependencies:
                     resolved_dependencies.append(cls.DEPENDENCY_GRAPH[dependency].locate(scope_key_string))
-                resolved_dependencies.extend(cls.resolve_dependencies(cls.get_dependency_obj_from_dependency_name(dependency), scope_key_string))
+                else:
+                    dependency_obj_inner = cls.DEPENDENCY_GRAPH[dependency]
+                    resolved_dependencies.append(
+                        dependency_obj_inner.locate(scope_key_string, *cls.resolve_dependencies(cls.DEPENDENCY_GRAPH[dependency], scope_key_string)))
             cls.purge_dependency_graph_of_function_scope_keys()
-            #import pdb; pdb.set_trace()
             return resolved_dependencies
 
     @classmethod
@@ -56,14 +58,6 @@ class DependencyGraphManager(DependencyGraphResolver):
         for node_name, node in temp_graph.items():
             if cls.node_has_no_in_edges(node, temp_graph):
                 return node_name
-
-    @classmethod
-    def get_dependency_obj_from_dependency_name(cls, dependency_name):
-        with cls.LOCK:
-            try:
-                return cls.DEPENDENCY_GRAPH[dependency_name]
-            except KeyError:
-                raise ValueError("dependency_primitives {0} is not part of dependency_primitives graph".format(dependency_name))
 
     @staticmethod
     def node_has_no_in_edges(node, temp_graph):
