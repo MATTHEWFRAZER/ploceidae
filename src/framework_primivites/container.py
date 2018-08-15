@@ -18,6 +18,5 @@ class Container(MarionettePrimitive):
         DependencyInitializationMethods.input_validation_for_dependency_obj(obj_to_wire_up)
         dependency_obj = Dependency.get_dependency_without_decoration(obj_to_wire_up, scope)
         resolved_dependencies = DependencyGraphManager.resolve_dependencies(dependency_obj, ScopeKey(dependency_obj.dependency_obj, scope))
-        resolved_dependency_names = [dependency for dependency in dependency_obj.dependencies if dependency not in dependencies_to_ignore]
-        args_to_apply_as_dict = dict(zip(resolved_dependency_names, resolved_dependencies))
+        args_to_apply_as_dict = {dependency : resolved_dependencies[i] for i, dependency in enumerate(dependency_obj.dependencies) if dependency not in dependencies_to_ignore}
         return PartialInjection(obj_to_wire_up, dependencies_to_ignore, **args_to_apply_as_dict)

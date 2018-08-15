@@ -28,13 +28,7 @@ class DependencyGraphManager(DependencyGraphResolver):
                     dependency_obj_inner = cls.DEPENDENCY_GRAPH[dependency]
                     resolved_dependencies.append(
                         dependency_obj_inner.locate(scope_key_string, *cls.resolve_dependencies(cls.DEPENDENCY_GRAPH[dependency], scope_key_string)))
-            cls.purge_dependency_graph_of_function_scope_keys()
             return resolved_dependencies
-
-    @classmethod
-    def purge_dependency_graph_of_function_scope_keys(cls):
-        for dependency_obj in cls.DEPENDENCY_GRAPH.values():
-            dependency_obj.purge_service_locator_of_function_scope_keys()
 
     @classmethod
     def dependency_graph_is_acyclic(cls, dependency_graph):
