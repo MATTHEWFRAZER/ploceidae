@@ -1,20 +1,17 @@
 from threading import RLock
 
-from dependency_graph.dependency_graph import DependencyGraph
-from dependency_graph.dependency_graph_resolver import DependencyGraphResolver
-from scope_binding.scope_key import ScopeKey
 
-class SentinalForServiceLocatorCheck(object): pass
+class DependencyGraphManager(object):
 
-class DependencyGraphManager(DependencyGraphResolver):
-
-    DEPENDENCY_GRAPH = DependencyGraph()
+    DEPENDENCY_GRAPH = {}
     LOCK = RLock()
 
     @classmethod
     def add_dependency(cls, dependency_obj):
         with cls.LOCK:
-            cls.DEPENDENCY_GRAPH.add_node(dependency_obj)
+            if dependency_obj.dependency_name in cls.DEPENDENCY_GRAPH:
+                raise ValueError("dependency_primitives with name {0} already exists in dependency_primitives graph".format(dependency_obj.dependency_name))
+            cls.DEPENDENCY_GRAPH[dependency_obj.dependency_name] = dependency_obj
 
     @classmethod
     def resolve_dependencies(cls, dependency_obj, scope_key_string, *dependencies_to_ignore):
