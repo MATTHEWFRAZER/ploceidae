@@ -3,13 +3,14 @@ import sys
 import pytest
 
 sys.path.append("..")
-from framework_primivites.dependency_primitives import dependency
 from dependency_graph.dependency_graph_manager import DependencyGraphManager
 from framework_primivites.container import Container
 from framework_primivites.dependency_primitives.dependency import dependency
 from framework_primivites.dependency_primitives.dependency import Dependency
+from scope_binding.scope_enum import ScopeEnum
 from scope_binding.scope_key import ScopeKey
 
+class Dummy(): pass
 
 @pytest.fixture
 def dependency_class_obj():
@@ -27,7 +28,7 @@ def dependency_graph_with_cycle(dependency_init):
     def b(c): pass
     def c(a): pass
 
-    return dependency_init(a, "function"), dependency_init(b, "function"), dependency_init(c, "function")
+    return dependency_init(a), dependency_init(b), dependency_init(c)
 
 
 @pytest.fixture
@@ -36,7 +37,7 @@ def dependency_graph(dependency_init):
     def b(c): return "b" + c
     def c(): return "c"
 
-    return dependency_init(a, "function"), dependency_init(b, "function"), dependency_init(c, "function")
+    return dependency_init(a), dependency_init(b), dependency_init(c)
 
 @pytest.fixture
 def scope_key():
@@ -48,28 +49,48 @@ def dependency_graph2(dependency_init):
     def e(f): return "e" + f
     def f(): return "f"
 
-    return dependency_init(d, "function"), dependency_init(e, "function"), dependency_init(f, "function")
+    return dependency_init(d), dependency_init(e), dependency_init(f)
 
 
 @pytest.fixture
 def dependency_graph_with_obj_that_depends_on_all_other_nodes(dependency_init, dependency_graph):
     def x(a, b, c): return "x" + a + b + c
-    return (dependency_init(x, "function"),) + dependency_graph
+    return (dependency_init(x),) + dependency_graph
 
 
 @pytest.fixture
 def dependency_graph_node_with_in_edges(dependency_init):
-    return dependency_init(lambda _: _, "function")
+    return dependency_init(lambda _: _)
 
 
 @pytest.fixture
 def dependency_graph_node_with_no_in_edges(dependency_init):
-    return dependency_init(lambda: None, "function")
+    return dependency_init(lambda: None)
 
 @pytest.fixture
 def dependency_init(dependency_class_obj):
     return dependency_class_obj.get_dependency_without_decoration
 
+@pytest.fixture
+def container_with_no_setup():
+    return Container
+
+@pytest.fixture
+def dummy():
+    return Dummy()
+
+@pytest.fixture
+def object_to_resolve(dependency_decorator):
+    @dependency_decorator(scope=ScopeEnum.MODULE)
+    def a():
+        return Dummy()
+    return a
+
+@pytest.fixture
+def resolved_object(container_with_no_setup, object_to_resolve):
+    def b(a):
+        return a
+    return container_with_no_setup.wire_dependencies(b)
 
 @pytest.fixture
 def container(dependency_graph_with_obj_that_depends_on_all_other_nodes, dependency_graph_manager):

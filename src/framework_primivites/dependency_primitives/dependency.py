@@ -1,19 +1,21 @@
+from functools import wraps
+
 from dependency_graph.dependency_graph_manager import DependencyGraphManager
 from framework_primivites.dependency_primitives.dependency_initialization_methods import DependencyInitializationMethods
 from framework_primivites.dependency_primitives.dependency_service_locator import DependencyServiceLocator
 from framework_primivites.primitive_marker import MarionettePrimitive
 from scope_binding.scope_binding_methods import ScopeBindingMethods
-from scope_binding.scope_key import ScopeKey
 
 __all__ = ["dependency", "Dependency"]
 
 
-class Dependency(MarionettePrimitive, DependencyServiceLocator):
+class Dependency(MarionettePrimitive, DependencyServiceLocator, ScopeBindingMethods):
     """decorator is a class object because that will make it easier to hook into later"""
 
     def __init__(self, **kwargs):
         DependencyInitializationMethods.input_validation_to_init(kwargs)
         self.scope = kwargs.get("scope", "function")
+        self.group = kwargs.get("group")
         self.callbacks = []
 
     def __call__(self, dependency_obj):
@@ -21,30 +23,25 @@ class Dependency(MarionettePrimitive, DependencyServiceLocator):
         # do I need to do classmethod check here? Maybe because the class method itself (unbounded will not be callable). If a user does class
         # introspection and decides to decorate a classmethod accessed via __dict__ yeah
         DependencyInitializationMethods.input_validation_for_dependency_obj(dependency_obj)
-        scope_key = ScopeKey(dependency_obj, self.scope)
-        ScopeBindingMethods.scope_binding_decorator(DependencyGraphManager.DEPENDENCY_GRAPH, self, scope_key)
-
-        def nested(*unresolved_dependencies):
-            resolved_dependencies = DependencyGraphManager.resolve_dependencies(self, ScopeKey(dependency_obj, self.scope))
-            dependencies = unresolved_dependencies + tuple(resolved_dependencies)
-            return dependency_obj(*dependencies)
-
-        nested = self.invoke_callbacks_after(nested)
-        nested.__name__ = dependency_obj.__name__
-        self.init_dependency_inner(nested)
+        self.scope_binding_decorator(DependencyGraphManager.DEPENDENCY_GRAPH, self, dependency_obj)
+        # get dependencies before because we need to keep the dependencies for the callable object
+        dependencies = DependencyInitializationMethods.get_dependencies_from_callable_obj(dependency_obj, *("self", "cls", "mcs"))
+        dependency_obj = self.invoke_callbacks_after(dependency_obj)
+        self.init_dependency_inner(dependency_obj)
+        self.dependencies = dependencies
         try:
             DependencyGraphManager.add_dependency(self)
         except ValueError:
             pass#log
         return dependency_obj
 
-    def init_dependency_inner(self, dependency_obj):
-        super(Dependency, self).__init__(self.scope, dependency_obj)
-        self.treat_as_resolved_obj = False
-        self.dependencies = DependencyInitializationMethods.get_dependencies_from_callable_obj(dependency_obj, tuple())
-        self.dependency_name = dependency_obj.__name__
+    def init_dependency_inner(self, callable_obj):
+        super(Dependency, self).__init__(self.scope, callable_obj)
+        self.dependencies = DependencyInitializationMethods.get_dependencies_from_callable_obj(callable_obj, *("self", "cls", "mcs"))
+        self.dependency_name = callable_obj.__name__
 
     def invoke_callbacks_after(self, func):
+        @wraps(func)
         def nested(*unresolved_dependencies):
             cached = func(*unresolved_dependencies)
             for callback in self.callbacks: callback()
@@ -55,8 +52,8 @@ class Dependency(MarionettePrimitive, DependencyServiceLocator):
         self.callbacks.append(callback)
 
     @classmethod
-    def get_dependency_without_decoration(cls, dependency_obj, scope):
-        dependency = cls(scope=scope)
+    def get_dependency_without_decoration(cls, dependency_obj):
+        dependency = cls()
         dependency.init_dependency_inner(dependency_obj)
         return dependency
 

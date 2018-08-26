@@ -3,7 +3,7 @@ from pprint import pformat
 
 
 class DependencyInitializationMethods(object):
-    VALID_KWARGS = ("scope",)
+    VALID_KWARGS = ("scope", "group")
 
     @classmethod
     def input_validation_for_dependency_obj(cls, decorated_obj):

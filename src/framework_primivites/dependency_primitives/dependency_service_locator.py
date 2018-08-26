@@ -1,4 +1,3 @@
-from scope_binding.scope_key import ScopeKey
 from scope_binding.scope_enum import ScopeEnum
 
 class DependencyServiceLocator(object):
@@ -10,12 +9,9 @@ class DependencyServiceLocator(object):
     def delete_entry_from_service_locator(self, scope_key):
         del self.services[scope_key]
 
-    def purge_service_locator_of_function_scope_keys(self):
-        for key in self.services.keys():
-            if ScopeKey.is_function_scope(key):
-                self.delete_entry_from_service_locator(key)
-
-    def locate(self, scope_key_string, *resolved_dependencies):
+    def locate(self, scope_key, *resolved_dependencies):
+        scope_key.init_scope(self.scope)
+        scope_key_string = str(scope_key)
         try:
             return self.services[scope_key_string]
         except KeyError:

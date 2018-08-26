@@ -19,8 +19,8 @@ class TestDependencyGraphManager(object):
         def a(b): pass
         def b(a): pass
 
-        a = Dependency.get_dependency_without_decoration(a, ScopeEnum.FUNCTION)
-        b = Dependency.get_dependency_without_decoration(b, ScopeEnum.FUNCTION)
+        a = Dependency.get_dependency_without_decoration(a)
+        b = Dependency.get_dependency_without_decoration(b)
 
         self.add_dependencies(dependency_graph_manager, a, b)
         assert not dependency_graph_manager.dependency_graph_is_acyclic(dependency_graph_manager.DEPENDENCY_GRAPH)
@@ -57,7 +57,7 @@ class TestDependencyGraphManager(object):
         dependency_graph_manager.add_dependency(None)
 
     def test_add_depenendency_with_callable(self, dependency_graph_manager):
-        l = Dependency.get_dependency_without_decoration(lambda _:_, ScopeEnum.FUNCTION)
+        l = Dependency.get_dependency_without_decoration(lambda _:_)
         dependency_graph_manager.add_dependency(l)
         assert len(dependency_graph_manager.DEPENDENCY_GRAPH) == 1
 
@@ -66,31 +66,31 @@ class TestDependencyGraphManager(object):
         def a(): pass
 
         b = a
-        a = Dependency.get_dependency_without_decoration(a, ScopeEnum.FUNCTION)
-        b = Dependency.get_dependency_without_decoration(b, ScopeEnum.FUNCTION)
+        a = Dependency.get_dependency_without_decoration(a)
+        b = Dependency.get_dependency_without_decoration(b)
         self.add_dependencies(dependency_graph_manager, a, b)
 
     # do we want to test this behavior?
     def test_resolve_dependencies_after_adding_dependency(self, dependency_graph, scope_key, dependency_graph_manager):
-        assert not dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key(dependency_graph[-1], ScopeEnum.FUNCTION))
+        assert not dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key(dependency_graph[-1])).all_resolved_dependencies
         dependency_graph_manager.add_dependency(dependency_graph[-1])
-        assert dependency_graph_manager.resolve_dependencies(dependency_graph[-2], scope_key(dependency_graph[-2], ScopeEnum.FUNCTION))[0] == dependency_graph[-1].dependency_obj.__name__
+        assert dependency_graph_manager.resolve_dependencies(dependency_graph[-2], scope_key(dependency_graph[-2])).resolved_dependencies[0] == dependency_graph[-1].dependency_obj.__name__
 
     def test_resolve_dependencies_with_dependent_that_has_no_dependencies(self, dependency_graph, dependency_graph_manager, scope_key):
-        assert not dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key(dependency_graph[-1], ScopeEnum.FUNCTION))
+        assert not dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key(dependency_graph[-1])).all_resolved_dependencies
 
     @pytest.mark.skip(reason="the logic for checking for a dependency_primitives being a dependency_primitives to itself does not reside in the dependency_primitives graph manager")
     @pytest.mark.xfail(raises=ValueError)
     def test_resolve_dependencies_with_dependent_that_declares_dependency_on_itself(self, dependency_graph_manager, scope_key):
         def a(a): pass
-        dependency_graph_manager.add_dependency(Dependency.get_dependency_without_decoration(a, ScopeEnum.FUNCTION))
-        dependency_graph_manager.resolve_dependencies(a, scope_key(a, ScopeEnum.FUNCTION))
+        dependency_graph_manager.add_dependency(Dependency.get_dependency_without_decoration(a))
+        dependency_graph_manager.resolve_dependencies(a, scope_key(a))
 
     def test_resolve_dependencies(self, dependency_graph_manager, dependency_graph, scope_key):
         try:
             self.add_dependencies(dependency_graph_manager, *dependency_graph)
-            dependencies = dependency_graph_manager.resolve_dependencies(dependency_graph[0], scope_key(dependency_graph[0].dependency_obj, ScopeEnum.FUNCTION))
-            dependency_graph[0].dependency_obj(*dependencies)
+            dependencies = dependency_graph_manager.resolve_dependencies(dependency_graph[0], scope_key(dependency_graph[0].dependency_obj))
+            dependency_graph[0].dependency_obj(*dependencies.all_resolved_dependencies)
         except ValueError as ex:
             pytest.fail("dependency_primitives resolution failed:{0}".format(ex))
 
@@ -98,8 +98,8 @@ class TestDependencyGraphManager(object):
     def test_resolve_dependencies_with_missing_dependency(self, dependency_graph_manager, scope_key):
         def a(b): pass
 
-        dependency_graph_manager.add_dependency(Dependency.get_dependency_without_decoration(a, ScopeEnum.FUNCTION))
-        dependency_graph_manager.resolve_dependencies(a, scope_key(a, ScopeEnum.FUNCTION))
+        dependency_graph_manager.add_dependency(Dependency.get_dependency_without_decoration(a))
+        dependency_graph_manager.resolve_dependencies(a, scope_key(a))
 
     @classmethod
     def get_mocked_graph(cls, dependency_graph_node):

@@ -5,10 +5,9 @@ class ScopeBindingMethods(object):
 
     DECORATED = {}
 
-    @classmethod
-    def scope_binding_decorator(cls, dependency_graph, dependency_obj, scope_key):
-        if scope_key.scope == ScopeEnum.INSTANCE and not cls.is_decorated(scope_key.obj):
-            cls.decorate_instance_obj(dependency_graph, dependency_obj.obj)
+    def scope_binding_decorator(self, dependency_graph, dependency_obj, inner_obj):
+        if dependency_obj.scope == ScopeEnum.INSTANCE and not self.is_decorated(inner_obj):
+            self.decorate_instance_obj(dependency_graph, dependency_obj.obj)
 
     @staticmethod
     def decorate_instance_obj(dependency_graph, obj):
