@@ -1,6 +1,6 @@
 class TestDependencyLocation:
 
-    def test_same_node_is_utilized_by_two_different_nodes(self, dependency_class_obj, scope_key):
+    def test_function_scope(self, dependency_class_obj, scope_key):
         dependency_instance = dependency_class_obj()
         l = lambda: type("T", (), {})
         dependency_instance(l)

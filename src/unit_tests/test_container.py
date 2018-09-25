@@ -80,3 +80,11 @@ class TestContainer(object):
         else:
             obj = partial_wired(*partial_dependency_fixture.left_over_dependencies)
         assert obj == "abcbcc"
+
+    def test_wire_up_dependencies_with_dynamically_generated_methods(self, container_constructor): pass
+    def test_wire_up_dependencies_with_class_introspection_generated_method(self, container_constructor): pass
+
+    def test_wire_up_dependencies_with_instance_introspection_generated_method(self, container_constructor):
+        # test two instances that generate the same methods, class scope should get the same, instance and below should not
+        pass
+    def test_wire_up_dependencies_with_metaclass_generated_methods(self, container_constructor): pass

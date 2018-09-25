@@ -28,7 +28,29 @@ class TestScopeManagement:
         #check that service locator entries are done
 
 
-    def test_instance_scope_dependency_obj_entry_is_deleted_after_delivered_to_instance(self): pass
+    def test_instance_scope_dependency_obj_entry_is_deleted_after_instance_is_deleted(self, dependency_graph_manager, container_constructor, dependency_decorator):
+        @dependency_decorator(scope=ScopeEnum.INSTANCE)
+        def a():
+            return type("T", (), {})
+
+        class A:
+            def __init__(self, a):
+                self.a = a
+
+            def x(self, a):
+                assert a is self.a
+
+        x = container_constructor.wire_dependencies(A)
+        container_constructor.wire_dependencies(x.x)
+
+        if a.__name__ not in dependency_graph_manager.DEPENDENCY_GRAPH:
+           raise Exception("dependency a was never inserted into dependency graph")
+
+        del x
+
+        assert a.__name__ in dependency_graph_manager.DEPENDENCY_GRAPH
+
+
     def test_class_scope_allows_for_multiple_objects(self): pass
 
     def test_module_scope_resolves_different_objects_to_different_modules(self, resolved_object, container_with_no_setup, dummy):

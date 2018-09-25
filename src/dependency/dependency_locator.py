@@ -14,6 +14,7 @@ class DependencyLocator(object):
         scope_key.init_scope(self.scope)
         scope_key_string = str(scope_key)
         try:
+            import pdb; pdb.set_trace()
             return self.services[scope_key_string]
         except KeyError:
             cached = self.dependency_obj(*resolved_dependencies)

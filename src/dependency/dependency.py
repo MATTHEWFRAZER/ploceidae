@@ -22,7 +22,8 @@ class Dependency(DependencyLocator, ScopeBindingMethods, DependencyHelperMethods
         # do I need to do classmethod check here? Maybe because the class method itself (unbounded will not be callable). If a user does class
         # introspection and decides to decorate a classmethod accessed via __dict__ yeah
         self.input_validation_for_dependency_obj(dependency_obj)
-        self.scope_binding_decorator(DependencyGraphManager.DEPENDENCY_GRAPH, self, dependency_obj)
+
+        #self.scope_binding_decorator(DependencyGraphManager.DEPENDENCY_GRAPH, self, dependency_obj)
         # get dependencies before because we need to keep the dependencies for the callable object
         dependencies = self.get_dependencies_from_callable_obj(dependency_obj, *("self", "cls", "mcs"))
         dependency_obj = self.invoke_callbacks_after(dependency_obj)
