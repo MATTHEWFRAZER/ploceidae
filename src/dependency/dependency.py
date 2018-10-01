@@ -42,8 +42,8 @@ class Dependency(DependencyLocator, ScopeBindingMethods, DependencyHelperMethods
 
     def invoke_callbacks_after(self, func):
         @wraps(func)
-        def nested(*unresolved_dependencies):
-            cached = func(*unresolved_dependencies)
+        def nested(*unresolved_dependencies, **kwargs):
+            cached = func(*unresolved_dependencies, **kwargs)
             for callback in self.callbacks: callback()
             return cached
         return nested

@@ -6,6 +6,8 @@ from dependency.dependency_helper_methods import DependencyHelperMethods
 from container.partial_injection import PartialInjection
 
 
+__all__ = ["Container"]
+
 class Container(object):
 
     @classmethod
@@ -15,7 +17,7 @@ class Container(object):
     @classmethod
     def partial_wire_dependencies(cls, obj_to_wire_up, *dependencies_to_ignore):
         # need to be able to use the other default scopes
-        with cls.object_init_cache(obj_to_wire_up):
+        with object_init_cache(obj_to_wire_up):
             DependencyHelperMethods.input_validation_for_dependency_obj(obj_to_wire_up)
             dependency_obj = Dependency.get_dependency_without_decoration(obj_to_wire_up)
             resolved_dependencies = DependencyGraphManager.resolve_dependencies(dependency_obj, *dependencies_to_ignore)
@@ -28,15 +30,14 @@ class Container(object):
         enumerator_on_dependencies = enumerate(filter(lambda dependency: dependency not in dependencies_to_ignore, dependencies))
         return {dependency: resolved_dependencies.resolved_dependencies[index] for index, dependency in enumerator_on_dependencies}
 
-    @contextmanager
-    @staticmethod
-    def object_init_cache(obj_to_wire_up):
-        if hasattr(obj_to_wire_up, "__init__"):
-            cached_init = getattr(obj_to_wire_up, "__init__")
-            yield
-            setattr(obj_to_wire_up, "__init__", cached_init)
-        else:
-            yield
+@contextmanager
+def object_init_cache(obj_to_wire_up):
+    if hasattr(obj_to_wire_up, "__init__"):
+        cached_init = getattr(obj_to_wire_up, "__init__")
+        yield
+        setattr(obj_to_wire_up, "__init__", cached_init)
+    else:
+        yield
 
 
 

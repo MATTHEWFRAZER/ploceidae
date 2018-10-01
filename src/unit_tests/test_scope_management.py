@@ -39,7 +39,7 @@ class TestScopeManagement:
 
             def x(self, a):
                 assert a is self.a
-
+        #issue here is that you have to have it wired before you can generated the write key, that's why i did a temp and would call it agian, not sure what to do
         x = container_constructor.wire_dependencies(A)
         container_constructor.wire_dependencies(x.x)
 
