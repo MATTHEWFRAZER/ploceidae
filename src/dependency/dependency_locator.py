@@ -13,6 +13,13 @@ class DependencyLocator(object):
     def locate(self, scope_key, *resolved_dependencies):
         scope_key.init_scope(self.scope)
         scope_key_string = str(scope_key)
+        # need to check alt_key because __init__ and possibly other methods wont get instance until wired but
+        # are still valid
+        try:
+            return self.services[scope_key.alt_key.format(self.scope)]
+        except KeyError:
+            pass
+
         try:
             return self.services[scope_key_string]
         except KeyError:
@@ -20,3 +27,11 @@ class DependencyLocator(object):
             if self.scope != ScopeEnum.FUNCTION:
                 self.services[scope_key_string] = cached
             return cached
+
+    def replace_alt_keys_with_valid_scope_from_instance(self, scope_key):
+        scope_key.init_scope(ScopeEnum.INSTANCE)
+        scope_key_string = str(scope_key)
+        for key, obj in self.services.items():
+            if key == scope_key.alt_key:
+                self.services[scope_key_string] = self.services[scope_key.alt_key.format(self.scope)]
+                del self.services[scope_key.alt_key.format(self.scope)]

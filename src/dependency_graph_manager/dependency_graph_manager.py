@@ -24,13 +24,13 @@ class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolut
                 raise ValueError("dependency makes graph cyclic")
 
     @classmethod
-    def resolve_dependencies(cls, dependency_obj, *dependencies_to_ignore):
+    def resolve_dependencies(cls, dependency_obj, time_stamp, *dependencies_to_ignore):
         # need to be able to use the other default scopes
-        resolved_dependencies = cls.resolve_dependencies_inner(dependency_obj, *dependencies_to_ignore)
+        resolved_dependencies = cls.resolve_dependencies_inner(dependency_obj, time_stamp, *dependencies_to_ignore)
         group = getargspec(dependency_obj.dependency_obj)[1]
         resolved_dependencies_by_group = []
         if group:
-            resolved_dependencies_by_group = cls.resolve_dependencies_by_group(dependency_obj, group)
+            resolved_dependencies_by_group = cls.resolve_dependencies_by_group(dependency_obj, group, time_stamp)
 
         attributes = {"all_resolved_dependencies": resolved_dependencies + resolved_dependencies_by_group,
                       "resolved_dependencies" : resolved_dependencies,

@@ -6,9 +6,14 @@ from scope_binding.scope_enum import ScopeEnum
 class ScopeKey(object):
     def __init__(self, obj):
         self.obj = obj
+        self.alt_key = None
 
     def init_scope(self, scope):
+        """resolves scope here because we don't get scope until wiring up dependencies"""
         self.scope = scope
+
+    def init_alt_key(self, time_stamp):
+        self.alt_key_format = "alt::" + "{}::" + self.obj + time_stamp
 
     def __repr__(self):
         if self.scope == ScopeEnum.SESSION:
@@ -16,6 +21,8 @@ class ScopeKey(object):
         elif self.scope == ScopeEnum.MODULE:
             return "{0}".format(getsourcefile(self.obj))
         elif self.scope == ScopeEnum.CLASS:
+            if self.obj.__name__ == "__init__":
+                return self.alt_key.format(self.scope)
             return "{0}".format(self.obj.__self__.__class__)
         elif self.scope == ScopeEnum.INSTANCE:
             return "{0}".format(self.obj.__self__)

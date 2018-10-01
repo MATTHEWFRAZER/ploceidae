@@ -3,21 +3,31 @@ from scope_binding.scope_key import ScopeKey
 
 class DependencyResolutionMethods(object):
     @classmethod
-    def resolve_dependencies_by_group(cls, dependency_obj, group):
+    def resolve_dependencies_by_group(cls, dependency_obj, group, time_stamp):
         dependency_retrieval_method = lambda: [name for name, dependency in cls.DEPENDENCY_GRAPH.items() if dependency.group == group]
-        return cls.dependency_resolution_algorithm(dependency_obj, dependency_retrieval_method)
+        return cls.dependency_resolution_algorithm(dependency_obj, dependency_retrieval_method, time_stamp)
 
     @classmethod
-    def resolve_dependencies_inner(cls, dependency_obj, *dependencies_to_ignore):
+    def resolve_dependencies_inner(cls, dependency_obj, time_stamp, *dependencies_to_ignore):
         dependency_retrieval_method = lambda: filter(lambda dependency: dependency not in dependencies_to_ignore, dependency_obj.dependencies)
-        return cls.dependency_resolution_algorithm(dependency_obj, dependency_retrieval_method)
+        return cls.dependency_resolution_algorithm(dependency_obj, dependency_retrieval_method, time_stamp)
 
     @classmethod
-    def dependency_resolution_algorithm(cls, dependency_obj, dependency_retrieval_method):
+    def dependency_resolution_algorithm(cls, dependency_obj, dependency_retrieval_method, time_stamp):
         scope_key = ScopeKey(dependency_obj.dependency_obj)
+        scope_key.alt_key_init(time_stamp)
         with cls.LOCK:
             dependencies = dependency_retrieval_method()
-            return cls.resolve_dependencies_as_list(dependencies, scope_key)
+            ret = cls.resolve_dependencies_as_list(dependencies, scope_key)
+
+    @classmethod
+    def replace_alt_keys_with_valid_scope_from_instance(cls, instance, time_stamp):
+        scope_key = ScopeKey(instance)
+        scope_key.alt_key_init(time_stamp)
+        with cls.LOCK:
+            for dependency in cls.DEPENDENCY_GRAPH.values():
+                dependency.replace_alt_keys_with_valid_scope_from_instance(scope_key, instance)
+
 
     @classmethod
     def resolve_dependencies_as_list(cls, dependencies, scope_key):
