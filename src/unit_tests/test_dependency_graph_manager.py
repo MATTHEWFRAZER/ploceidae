@@ -1,6 +1,9 @@
+from datetime import datetime
+
 import pytest
 
 from dependency import Dependency
+from scope_binding.scope_key import ScopeEnum
 
 
 class TestDependencyGraphManager(object):
@@ -69,17 +72,21 @@ class TestDependencyGraphManager(object):
 
     # do we want to test this behavior?
     def test_resolve_dependencies_after_adding_dependency(self, dependency_graph, scope_key, dependency_graph_manager):
-        assert not dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key(dependency_graph[-1])).all_resolved_dependencies
+        scope_key_obj = self.scope_key_init(scope_key, dependency_graph[-1], ScopeEnum.FUNCTION, datetime.now())
+        scope_key_obj2 = self.scope_key_init(scope_key, dependency_graph[-2], ScopeEnum.FUNCTION, datetime.now())
+        assert not dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key_obj).all_resolved_dependencies
         dependency_graph_manager.add_dependency(dependency_graph[-1])
-        assert dependency_graph_manager.resolve_dependencies(dependency_graph[-2], scope_key(dependency_graph[-2])).resolved_dependencies[0] == dependency_graph[-1].dependency_obj.__name__
+        assert dependency_graph_manager.resolve_dependencies(dependency_graph[-2], scope_key_obj2).resolved_dependencies[0] == dependency_graph[-1].dependency_obj.__name__
 
     def test_resolve_dependencies_with_dependent_that_has_no_dependencies(self, dependency_graph, dependency_graph_manager, scope_key):
-        assert not dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key(dependency_graph[-1])).all_resolved_dependencies
+        scope_key_obj = self.scope_key_init(scope_key, dependency_graph[-1], ScopeEnum.FUNCTION, datetime.now())
+        assert not dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key_obj).all_resolved_dependencies
 
     def test_resolve_dependencies(self, dependency_graph_manager, dependency_graph, scope_key):
+        scope_key_obj = self.scope_key_init(scope_key, dependency_graph[0].dependency_obj, ScopeEnum.FUNCTION, datetime.now())
         try:
             self.add_dependencies(dependency_graph_manager, *dependency_graph)
-            dependencies = dependency_graph_manager.resolve_dependencies(dependency_graph[0], scope_key(dependency_graph[0].dependency_obj))
+            dependencies = dependency_graph_manager.resolve_dependencies(dependency_graph[0], scope_key_obj)
             dependency_graph[0].dependency_obj(*dependencies.all_resolved_dependencies)
         except ValueError as ex:
             pytest.fail("dependency resolution failed:{0}".format(ex))
@@ -101,3 +108,10 @@ class TestDependencyGraphManager(object):
     def add_dependencies(cls, dependency_graph_manager, *dependencies):
         for dependency in dependencies:
             dependency_graph_manager.add_dependency(dependency)
+
+    @staticmethod
+    def scope_key_init(scope_key, obj, scope, time_stamp):
+        scope_key_obj = scope_key(obj)
+        scope_key_obj.init_scope(scope)
+        scope_key_obj.init_alt_key(time_stamp)
+        return scope_key_obj

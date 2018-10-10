@@ -31,7 +31,6 @@ class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolut
         resolved_dependencies_by_group = []
         if group:
             resolved_dependencies_by_group = cls.resolve_dependencies_by_group(dependency_obj, group, time_stamp)
-
         attributes = {"all_resolved_dependencies": resolved_dependencies + resolved_dependencies_by_group,
                       "resolved_dependencies" : resolved_dependencies,
                       "resolved_dependencies_by_group": resolved_dependencies_by_group}

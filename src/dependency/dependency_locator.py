@@ -1,5 +1,5 @@
 from scope_binding.scope_enum import ScopeEnum
-
+from scope_binding.scope_key import ScopeKey
 
 class DependencyLocator(object):
     def __init__(self, scope, dependency_obj):
@@ -16,7 +16,7 @@ class DependencyLocator(object):
         # need to check alt_key because __init__ and possibly other methods wont get instance until wired but
         # are still valid
         try:
-            return self.services[scope_key.alt_key.format(self.scope)]
+            return self.services[scope_key_string]
         except KeyError:
             pass
 
@@ -28,10 +28,11 @@ class DependencyLocator(object):
                 self.services[scope_key_string] = cached
             return cached
 
-    def replace_alt_keys_with_valid_scope_from_instance(self, scope_key):
-        scope_key.init_scope(ScopeEnum.INSTANCE)
-        scope_key_string = str(scope_key)
+    def replace_alt_keys_with_valid_scope_from_instance(self, obj, obj_to_wire_up, time_stamp):
+        scope_key_string = ScopeKey.generate_alt_scope_key(obj_to_wire_up, ScopeEnum.INSTANCE, time_stamp)
+        new_scope_key = ScopeKey(obj)
+        new_scope_key.init_scope(ScopeEnum.INSTANCE)
         for key, obj in self.services.items():
-            if key == scope_key.alt_key:
-                self.services[scope_key_string] = self.services[scope_key.alt_key.format(self.scope)]
-                del self.services[scope_key.alt_key.format(self.scope)]
+            if key == scope_key_string:
+                self.services[str(new_scope_key)] = self.services[scope_key_string]
+                del self.services[scope_key_string]

@@ -5,8 +5,6 @@ from dependency.dependency_helper_methods import DependencyHelperMethods
 from dependency.dependency_locator import DependencyLocator
 from scope_binding.scope_binding_methods import ScopeBindingMethods
 
-__all__ = ["dependency", "Dependency"]
-
 
 class Dependency(DependencyLocator, ScopeBindingMethods, DependencyHelperMethods):
     """decorator is a class object because that will make it easier to hook into later"""
@@ -69,6 +67,3 @@ class Dependency(DependencyLocator, ScopeBindingMethods, DependencyHelperMethods
         else:
             # if we're calling it like __call__
             return cls()(*args)
-
-
-dependency = Dependency.control_initialization
