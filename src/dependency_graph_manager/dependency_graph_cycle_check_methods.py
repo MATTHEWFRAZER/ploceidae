@@ -28,7 +28,9 @@ class DependencyGraphCycleCheckMethods(object):
 
     @staticmethod
     def node_has_no_in_edges(node, temp_graph):
+        # we check that all dependencies
         for dependency in node.dependencies:
+            # we use dependency object here because it gives us access to a module (doesn't have to be a valid module in this case)
             cache_item = CacheItem(node.dependency_obj, dependency)
             if cache_item in temp_graph:
                 return False

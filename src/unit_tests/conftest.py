@@ -116,6 +116,12 @@ def multiple_module_setup_with_global(dependency_decorator):
         return "global b"
 
 @pytest.fixture
+def multiple_module_setup_with_global_c(dependency_decorator):
+    @dependency_decorator(global_dependency=True)
+    def c():
+        return "global c"
+
+@pytest.fixture
 def multiple_module_setup_with_module(dependency_decorator):
     @dependency_decorator
     def b():

@@ -16,7 +16,7 @@ class Dependency(DependencyLocator, DependencyHelperMethods):
         self.callbacks = []
 
     def __call__(self, dependency_obj):
-        # we need to take this algorithm into somne place else, question do we want the end caller to be in the dependency graph
+        # we should put this algorithm somne place else, question do we want the end caller to be in the dependency graph
         # do I need to do classmethod check here? Maybe because the class method itself (unbounded will not be callable). If a user does class
         # introspection and decides to decorate a classmethod accessed via __dict__ yeah
         self.input_validation_for_dependency_obj(dependency_obj)

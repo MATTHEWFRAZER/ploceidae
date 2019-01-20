@@ -20,7 +20,7 @@ class DependencyResolutionMethods(object):
         scope_key.init_alt_key(time_stamp)
         with cls.LOCK:
             dependencies = dependency_retrieval_method()
-            return cls.resolve_dependencies_as_list(dependencies, scope_key, time_stamp)
+            return cls.resolve_dependencies_as_list(list(dependencies), scope_key)#, time_stamp)
 
     @classmethod
     def replace_alt_keys_with_valid_scope_from_instance(cls, instance, object_to_wire_up, time_stamp):
@@ -28,20 +28,56 @@ class DependencyResolutionMethods(object):
             for dependency in cls.DEPENDENCY_GRAPH.values():
                 dependency.replace_alt_keys_with_valid_scope_from_instance(instance, object_to_wire_up, time_stamp)
 
+    @classmethod
+    def resolve_dependencies_as_list(cls, dependencies, scope_key):
+        resolved_graph = cls.generate_resolved_dependency_graph(dependencies, scope_key)
+        return cls.resolve_arguments_to_dependencies(dependencies, resolved_graph)
 
     @classmethod
-    def resolve_dependencies_as_list(cls, dependencies, scope_key, time_stamp):
-        resolved_dependencies = []
+    def generate_resolved_dependency_graph(cls, dependencies, scope_key):
+        dependency_stack = [dependencies]
+        resolved_graph = {}
+        while dependency_stack:
+            dependencies = dependency_stack.pop()
+            for dependency in dependencies:
+                dep_obj = cls.find_dependency_obj(dependency)
+                if dep_obj is None:
+                    raise BaseException("{0} doesn't exist".format(dependency))
+                cache_item = CacheItem(dep_obj.dependency_obj, dep_obj.dependency_name)
+                # if there is no need to resolve arguments
+                if not cls.DEPENDENCY_GRAPH[cache_item].dependencies:
+                    resolved_graph[cache_item.dependency_name] = cls.DEPENDENCY_GRAPH[cache_item].locate(scope_key)
+                else:
+                    dependency_obj_inner = cls.DEPENDENCY_GRAPH[cache_item]
+                    resolved_args = cls.resolve_arguments_to_dependencies(dependency_obj_inner.dependencies,
+                                                                          resolved_graph)
+                    if resolved_args:
+                        resolved_graph[cache_item.dependency_name] = dependency_obj_inner.locate(scope_key,
+                                                                                                 *resolved_args)  # .all_resolved_dependencies)
+                    else:
+                        # do not change the order of these appends, or else endless loop
+                        dependency_stack.append([dependency_obj_inner.dependency_name])
+                        dependency_stack.append(dependency_obj_inner.dependencies)
+
+        return resolved_graph
+
+    @classmethod
+    def find_dependency_obj(cls, dependency):
+        for dependency_obj in cls.DEPENDENCY_GRAPH.values():
+            if dependency_obj.dependency_name == dependency:
+                return dependency_obj
+
+
+    @classmethod
+    def resolve_arguments_to_dependencies(cls, dependencies, resolved_graph):
+        resolved_arguments = []
         for dependency in dependencies:
-            cache_item = cls.get_cache_item(scope_key.obj, dependency)
-            # if there is no need to resolve arguments
-            if not cls.DEPENDENCY_GRAPH[cache_item].dependencies:
-                resolved_dependencies.append(cls.DEPENDENCY_GRAPH[cache_item].locate(scope_key))
-            else:
-                dependency_obj_inner = cls.DEPENDENCY_GRAPH[cache_item]
-                resolved_args = cls.resolve_dependencies(cls.DEPENDENCY_GRAPH[cache_item], time_stamp)
-                resolved_dependencies.append(dependency_obj_inner.locate(scope_key, *resolved_args.all_resolved_dependencies))
-        return resolved_dependencies
+            try:
+                resolved_arguments.append(resolved_graph[dependency])
+            except:
+                return []
+        return resolved_arguments
+
 
     @classmethod
     def get_cache_item(cls, dependent, dependency_name):

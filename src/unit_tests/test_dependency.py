@@ -84,13 +84,35 @@ class TestDependency:
         # problem is inner function of decorator renames dependency
         assert "b" == container.wire_dependencies(a)
 
-    def test_dependency_with_same_name_as_previous_dependency_gets_resolved_correctly(self, multiple_module_setup_with_global, dependency_decorator):
+    def test_dependency_with_same_name_as_previous_dependency_gets_resolved_correctly(self, dependency_decorator, multiple_module_setup_with_global):
         @dependency_decorator
         def b(): return "inner_b"
 
         def a(b): return b
 
         assert Container.wire_dependencies(a) == "inner_b"
+
+    def test_dependency_with_same_name_as_previous_dependency_gets_resolved_correctly_as_a_non_leaf_node(self, multiple_module_setup_with_global, dependency_decorator):
+        @dependency_decorator
+        def b(): return "inner_b"
+
+        @dependency_decorator
+        def c(b): return b
+
+        def a(c): return c
+
+        assert Container.wire_dependencies(a) == "inner_b"
+
+    def test_dependency_with_same_name_as_previous_dependency_gets_resolved_correctly_as_sibling_leaf_node(self, multiple_module_setup_with_global, multiple_module_setup_with_global_c, dependency_decorator):
+        @dependency_decorator
+        def b(): return "inner_b"
+
+        @dependency_decorator
+        def c(): return "inner_c"
+
+        def a(b, c): return (b, c)
+
+        assert Container.wire_dependencies(a) == ("inner_b", "inner_c")
 
     def test_dependency_with_same_name_as_previous_dependency_gets_resolved_correctly_module_level(self, multiple_module_setup_with_module, container, dependency_decorator):
         @dependency_decorator
