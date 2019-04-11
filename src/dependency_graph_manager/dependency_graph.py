@@ -64,7 +64,6 @@ class DependencyGraph(object):
         if cache_item in self.module_caches:
             return to_call_on_caches(self.module_caches, cache_item)
         elif cache_item.dependency_name in self.global_cache:
-
             return to_call_on_caches(self.global_cache, cache_item.dependency_name)
         elif cache_item.dependency_name in self.builtins_cache:
             return to_call_on_caches(self.builtins_cache, cache_item.dependency_name)

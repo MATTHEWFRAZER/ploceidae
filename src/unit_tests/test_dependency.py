@@ -115,6 +115,7 @@ class TestDependency:
         assert Container.wire_dependencies(a) == ("inner_b", "inner_c")
 
     def test_dependency_with_same_name_as_previous_dependency_gets_resolved_correctly_module_level(self, multiple_module_setup_with_module, container, dependency_decorator):
+        # look so in cache_item somehow, the module name is getting resolved incorrecty as conftest
         @dependency_decorator
         def b(): return "inner_b"
 

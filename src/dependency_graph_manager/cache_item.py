@@ -1,5 +1,5 @@
 from constants import GLOBAL_NAMESPACE
-from dependency_graph_manager.module_name_helper import ModuleNameHelper
+from src.utilities.module_name_helper import ModuleNameHelper
 
 __all__ = ["CacheItem"]
 

@@ -1,6 +1,6 @@
 from scope_binding.scope_key import ScopeKey
-from scope_binding.scope_enum import ScopeEnum
 from dependency_graph_manager.cache_item import CacheItem
+from src.utilities.module_name_helper import ModuleNameHelper
 
 
 class DependencyResolutionMethods(object):
@@ -20,7 +20,7 @@ class DependencyResolutionMethods(object):
         scope_key.init_alt_key(time_stamp)
         with cls.LOCK:
             dependencies = dependency_retrieval_method()
-            return cls.resolve_dependencies_as_list(list(dependencies), scope_key)#, time_stamp)
+            return cls.resolve_dependencies_as_list(list(dependencies), scope_key)
 
     @classmethod
     def replace_alt_keys_with_valid_scope_from_instance(cls, instance, object_to_wire_up, time_stamp):
@@ -40,7 +40,7 @@ class DependencyResolutionMethods(object):
         while dependency_stack:
             dependencies = dependency_stack.pop()
             for dependency in dependencies:
-                dep_obj = cls.find_dependency_obj(dependency)
+                dep_obj = cls.find_dependency_obj(dependency, scope_key)
                 if dep_obj is None:
                     raise BaseException("{0} doesn't exist".format(dependency))
                 cache_item = CacheItem(dep_obj.dependency_obj, dep_obj.dependency_name)
@@ -62,7 +62,13 @@ class DependencyResolutionMethods(object):
         return resolved_graph
 
     @classmethod
-    def find_dependency_obj(cls, dependency):
+    def find_dependency_obj(cls, dependency, scope_key):
+        # resolve the first dependency that has the same module
+        for value in cls.DEPENDENCY_GRAPH.values():
+            if ModuleNameHelper.get_module_name(value.dependency_obj) == ModuleNameHelper.get_module_name(scope_key.obj) and value.dependency_name == dependency:
+                return value
+
+        #resolve by name
         for dependency_obj in cls.DEPENDENCY_GRAPH.values():
             if dependency_obj.dependency_name == dependency:
                 return dependency_obj

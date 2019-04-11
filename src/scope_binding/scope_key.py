@@ -15,10 +15,6 @@ class ScopeKey(object):
     def init_alt_key(self, time_stamp):
         self.alt_key_format = "alt::" + "{}::" + str(self.obj) + "::" + str(time_stamp)
 
-    @staticmethod
-    def generate_alt_scope_key(obj, scope, time_stamp):
-        return "alt::{}::{}::{}".format(scope, obj, time_stamp)
-
     def __repr__(self):
         if self.scope == ScopeEnum.SESSION:
             return "null"
@@ -27,25 +23,35 @@ class ScopeKey(object):
         elif self.scope == ScopeEnum.CLASS:
             return "{0}".format(self.obj.__self__.__class__)
         elif self.scope == ScopeEnum.INSTANCE:
-            if type(self.obj) is type:
-                return self.alt_key_format.format(self.scope)
-            if hasattr(self.obj, "__name__") and self.obj.__name__ == "__init__":
-                return self.alt_key_format.format(self.scope)
-            if hasattr(self.obj, "__self__"):
-                return "{0}".format(self.obj.__self__)
-            return "{0}".format(self.obj)
+            return self.handle_instance_scope()
         elif self.scope == ScopeEnum.FUNCTION:
-            try:
-                instance_binding = self.obj.__self__
-            except AttributeError:
-                instance_binding = "null"
-            try:
-                used_name = self.obj.__qualname__
-            except:
-                used_name = str(self.obj)
-            return "{0}::{1}".format(instance_binding, used_name)
+            return self.handle_function_scope()
         else:
             raise NotImplementedError("{0} not a valid scope".format(self.scope))
+
+    def handle_instance_scope(self):
+        if type(self.obj) is type:
+            return self.alt_key_format.format(self.scope)
+        if hasattr(self.obj, "__name__") and self.obj.__name__ == "__init__":
+            return self.alt_key_format.format(self.scope)
+        if hasattr(self.obj, "__self__"):
+            return "{0}".format(self.obj.__self__)
+        return "{0}".format(self.obj)
+
+    def handle_function_scope(self):
+        try:
+            instance_binding = self.obj.__self__
+        except AttributeError:
+            instance_binding = "null"
+        try:
+            used_name = self.obj.__qualname__
+        except:
+            used_name = str(self.obj)
+        return "{0}::{1}".format(instance_binding, used_name)
+
+    @staticmethod
+    def generate_alt_scope_key(obj, scope, time_stamp):
+        return "alt::{}::{}::{}".format(scope, obj, time_stamp)
 
     @staticmethod
     def is_function_scope(scope_key):
