@@ -1,10 +1,10 @@
 from inspect import getargspec
 from threading import RLock
 
-from dependency_graph_manager.dependency_graph_cycle_check_methods import DependencyGraphCycleCheckMethods
-from dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
-from dependency_graph_manager.cache_item import CacheItem
-from dependency_graph_manager.dependency_graph import DependencyGraph
+from src.dependency_graph_manager.dependency_graph_cycle_check_methods import DependencyGraphCycleCheckMethods
+from src.dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
+from src.dependency_graph_manager.cache_item import CacheItem
+from src.dependency_graph_manager.dependency_graph import DependencyGraph
 
 
 class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolutionMethods):

@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from dependency_graph_manager import DependencyGraphManager
-from dependency import Dependency
-from dependency.dependency_helper_methods import DependencyHelperMethods
-from container.partial_injection import PartialInjection
+from src.dependency_graph_manager import DependencyGraphManager
+from src.dependency import Dependency
+from src.dependency.dependency_helper_methods import DependencyHelperMethods
+from src.container.partial_injection import PartialInjection
 
 
 __all__ = ["Container"]

@@ -1,5 +1,5 @@
-from scope_binding.scope_enum import ScopeEnum
-from scope_binding.scope_key import ScopeKey
+from src.scope_binding.scope_enum import ScopeEnum
+from src.scope_binding.scope_key import ScopeKey
 
 class DependencyLocator(object):
     def __init__(self, scope, dependency_obj):

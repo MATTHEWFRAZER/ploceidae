@@ -1,6 +1,6 @@
 from inspect import getsourcefile
 
-from scope_binding.scope_enum import ScopeEnum
+from src.scope_binding.scope_enum import ScopeEnum
 
 
 class ScopeKey(object):

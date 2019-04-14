@@ -1,4 +1,4 @@
-from dependency.dependency import Dependency
+from src.dependency.dependency import Dependency
 
 __all__ = ["dependency", "Dependency"]
 

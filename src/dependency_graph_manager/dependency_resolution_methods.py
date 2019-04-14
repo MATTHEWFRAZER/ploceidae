@@ -1,5 +1,5 @@
-from scope_binding.scope_key import ScopeKey
-from dependency_graph_manager.cache_item import CacheItem
+from src.scope_binding.scope_key import ScopeKey
+from src.dependency_graph_manager.cache_item import CacheItem
 from src.utilities.module_name_helper import ModuleNameHelper
 
 
@@ -38,28 +38,35 @@ class DependencyResolutionMethods(object):
         dependency_stack = [dependencies]
         resolved_graph = {}
         while dependency_stack:
-            dependencies = dependency_stack.pop()
-            for dependency in dependencies:
-                dep_obj = cls.find_dependency_obj(dependency, scope_key)
-                if dep_obj is None:
-                    raise BaseException("{0} doesn't exist".format(dependency))
-                cache_item = CacheItem(dep_obj.dependency_obj, dep_obj.dependency_name)
-                # if there is no need to resolve arguments
-                if not cls.DEPENDENCY_GRAPH[cache_item].dependencies:
-                    resolved_graph[cache_item.dependency_name] = cls.DEPENDENCY_GRAPH[cache_item].locate(scope_key)
-                else:
-                    dependency_obj_inner = cls.DEPENDENCY_GRAPH[cache_item]
-                    resolved_args = cls.resolve_arguments_to_dependencies(dependency_obj_inner.dependencies,
-                                                                          resolved_graph)
-                    if resolved_args:
-                        resolved_graph[cache_item.dependency_name] = dependency_obj_inner.locate(scope_key,
-                                                                                                 *resolved_args)  # .all_resolved_dependencies)
-                    else:
-                        # do not change the order of these appends, or else endless loop
-                        dependency_stack.append([dependency_obj_inner.dependency_name])
-                        dependency_stack.append(dependency_obj_inner.dependencies)
-
+            cls.resolve_dependency_to_dependency_graph(scope_key, resolved_graph, dependency_stack)
         return resolved_graph
+
+    @classmethod
+    def resolve_dependency_to_dependency_graph(cls, scope_key, resolved_graph, dependency_stack):
+        dependencies = dependency_stack.pop()
+        for dependency in dependencies:
+            dep_obj = cls.find_dependency_obj(dependency, scope_key)
+            if dep_obj is None:
+                raise BaseException("{0} doesn't exist".format(dependency))
+            cache_item = CacheItem(dep_obj.dependency_obj, dep_obj.dependency_name)
+            # if there is no need to resolve arguments
+            if not cls.DEPENDENCY_GRAPH[cache_item].dependencies:
+                resolved_graph[cache_item.dependency_name] = cls.DEPENDENCY_GRAPH[cache_item].locate(scope_key)
+            else:
+                cls.resolve_dependency_with_dependencies_to_dependency_graph(cache_item, resolved_graph, scope_key, dependency_stack)
+
+    @classmethod
+    def resolve_dependency_with_dependencies_to_dependency_graph(cls, cache_item, resolved_graph, scope_key, dependency_stack):
+        dependency_obj_inner = cls.DEPENDENCY_GRAPH[cache_item]
+        resolved_args = cls.resolve_arguments_to_dependencies(dependency_obj_inner.dependencies,
+                                                              resolved_graph)
+        if resolved_args:
+            resolved_graph[cache_item.dependency_name] = dependency_obj_inner.locate(scope_key,
+                                                                                     *resolved_args)
+        else:
+            # do not change the order of these appends, or else endless loop
+            dependency_stack.append([dependency_obj_inner.dependency_name])
+            dependency_stack.append(dependency_obj_inner.dependencies)
 
     @classmethod
     def find_dependency_obj(cls, dependency, scope_key):
@@ -80,7 +87,8 @@ class DependencyResolutionMethods(object):
         for dependency in dependencies:
             try:
                 resolved_arguments.append(resolved_graph[dependency])
-            except:
+            except KeyError:
+                # if there is a key error, then we need to further resolve dependencies
                 return []
         return resolved_arguments
 

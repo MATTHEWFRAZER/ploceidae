@@ -1,5 +1,9 @@
-from dependency_graph_manager.cache_item import CacheItem
-from constants import GLOBAL_NAMESPACE
+from pymonad import Functor
+
+from src.dependency_graph_manager.cache_item import CacheItem
+from src.constants import GLOBAL_NAMESPACE
+from src.utilities.pygmy_reduce import pygmy_reduce
+from src.utilities.reduce_operand import ReduceOperand
 
 
 class DependencyGraphCycleCheckMethods(object):
@@ -26,16 +30,21 @@ class DependencyGraphCycleCheckMethods(object):
             if cls.node_has_no_in_edges(node, temp_graph):
                 return CacheItem(node.dependency_obj, node_name)
 
+    @classmethod
+    def node_has_no_in_edges(cls, node, temp_graph):
+        def no_dependencies_appear_in_temp_graph(*dependencies):
+            return not any(cls.dependency_appears_in_temp_graph(dependency, node, temp_graph) for dependency in dependencies)
+        reduce_operand = ReduceOperand(no_dependencies_appear_in_temp_graph)
+        return pygmy_reduce(lambda x, y: x & Functor(y), node.dependencies, reduce_operand).invoke()
+
     @staticmethod
-    def node_has_no_in_edges(node, temp_graph):
-        # we check that all dependencies
-        for dependency in node.dependencies:
-            # we use dependency object here because it gives us access to a module (doesn't have to be a valid module in this case)
-            cache_item = CacheItem(node.dependency_obj, dependency)
-            if cache_item in temp_graph:
-                return False
-            cache_item.module = GLOBAL_NAMESPACE
-            if cache_item in temp_graph:
-                return False
-        else:
+    def dependency_appears_in_temp_graph(dependency, node, temp_graph):
+        # we use dependency object here because it gives us access to a module (doesn't have to be a valid module in this case)
+        cache_item = CacheItem(node.dependency_obj, dependency)
+        if cache_item in temp_graph:
             return True
+        cache_item.module = GLOBAL_NAMESPACE
+        if cache_item in temp_graph:
+            return True
+
+        return False

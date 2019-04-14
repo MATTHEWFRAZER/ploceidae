@@ -1,8 +1,8 @@
 from functools import wraps
 
-from dependency_graph_manager  import DependencyGraphManager
-from dependency.dependency_helper_methods import DependencyHelperMethods
-from dependency.dependency_locator import DependencyLocator
+from src.dependency_graph_manager  import DependencyGraphManager
+from src.dependency.dependency_helper_methods import DependencyHelperMethods
+from src.dependency.dependency_locator import DependencyLocator
 
 
 class Dependency(DependencyLocator, DependencyHelperMethods):

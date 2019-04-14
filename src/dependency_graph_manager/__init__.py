@@ -1,3 +1,3 @@
-from dependency_graph_manager.dependency_graph_manager import DependencyGraphManager
+from src.dependency_graph_manager.dependency_graph_manager import DependencyGraphManager
 
 __all__ = ["DependencyGraphManager"]

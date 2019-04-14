@@ -27,6 +27,8 @@ class TestDependency:
             assert  cache_item in dependency_graph_manager.DEPENDENCY_GRAPH
 
 
+    # something to think about. We should keep this code until we figure out what we want to do in this situation
+    # python's general behavior is to allow it. Should we care? Even still we should verify this
     @pytest.mark.skip(reason="skipped because a will get overwrote")
     @pytest.mark.xfail(raises=ValueError)
     def test_duplicate_dependency_name_module_level_dependency_resolution_scheme(self, dependency_decorator):
@@ -70,6 +72,8 @@ class TestDependency:
         except Exception as ex:
             pytest.fail("could not decorate previously decorated function. Ex: {0}".format(ex))
 
+    # the whole problem was that this would be a pain to support. A lot more is involved to solve this problem. What happens
+    # is we don't get the right set of arguments since we get the decorator. Do we want to do nothing about that?
     @pytest.mark.skip(reason="decorator renames dependency")
     def test_dependency_with_second_decorator_correctly_resolves_dependencies(self, dependency_decorator, container, separate_decorator): pass
 

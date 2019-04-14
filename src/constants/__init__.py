@@ -1,1 +1,1 @@
-from constants.constants import GLOBAL_NAMESPACE
+from src.constants.constants import GLOBAL_NAMESPACE
