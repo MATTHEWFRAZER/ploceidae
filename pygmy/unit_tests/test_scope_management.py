@@ -1,8 +1,8 @@
 import pytest
 
-from scope_binding.scope_enum import ScopeEnum
-from dependency_graph_manager.cache_item import CacheItem
-from constants import GLOBAL_NAMESPACE
+from pygmy.scope_binding.scope_enum import ScopeEnum
+from pygmy.dependency_graph_manager.cache_item import CacheItem
+from pygmy.constants import GLOBAL_NAMESPACE
 
 
 class TestScopeManagement:
@@ -10,7 +10,7 @@ class TestScopeManagement:
     def test_function_scope_dependency_obj_entry_is_deleted_after_delivered_to_function(self, container_constructor, dependency_decorator, dummy):
         @dependency_decorator(scope=ScopeEnum.FUNCTION, global_dependency=True)
         def a():
-            return type(dummy)()
+            return dummy.__class__()
 
         def b(a):
             return a
@@ -33,17 +33,19 @@ class TestScopeManagement:
 
 
     def test_instance_scope_dependency_obj_entry_is_deleted_after_instance_is_deleted(self, dependency_graph_manager, container_constructor, dependency_decorator):
+
         @dependency_decorator(scope=ScopeEnum.INSTANCE, global_dependency=True)
         def a():
-            return type("T", (), {})
+            return type("T", (), {})()
 
         class A:
             def __init__(self, a):
                 self.a = a
 
             def x(self, a):
+                # we do this check to show that we have a correctly resolved instance dependency
                 assert a is self.a
-        #issue here is that you have to have it wired before you can generated the write key, that's why i did a temp and would call it agian, not sure what to do
+        #issue here is that you have to have it wired before you can generated the write key, that's why i did a temp and would call it again, not sure what to do
         x = container_constructor.wire_dependencies(A)
         container_constructor.wire_dependencies(x.x)
 

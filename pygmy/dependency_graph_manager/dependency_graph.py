@@ -2,8 +2,8 @@ from copy import copy
 from itertools import chain
 from operator import getitem
 
-from constants import GLOBAL_NAMESPACE
-from dependency_graph_manager.module_caches import ModuleCaches
+from pygmy.constants import GLOBAL_NAMESPACE
+from pygmy.dependency_graph_manager.module_caches import ModuleCaches
 
 
 class DependencyGraph(object):

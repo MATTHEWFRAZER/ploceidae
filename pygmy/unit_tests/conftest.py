@@ -1,15 +1,19 @@
 from functools import partial
+import logging
 import sys
 
 import pytest
 
 sys.path.append("..")
-from dependency_graph_manager import DependencyGraphManager
-from container import Container
-from dependency import dependency
-from dependency import Dependency
-from scope_binding.scope_enum import ScopeEnum
-from scope_binding.scope_key import ScopeKey
+from pygmy.dependency_graph_manager import DependencyGraphManager
+from pygmy.container import Container
+from pygmy.dependency import dependency
+from pygmy.dependency import Dependency
+from pygmy.scope_binding.scope_enum import ScopeEnum
+from pygmy.scope_binding.scope_key import ScopeKey
+from pygmy.utilities.logging_utilities import configure_pygmy_logging
+
+configure_pygmy_logging(logging.DEBUG)
 
 class Dummy(): pass
 

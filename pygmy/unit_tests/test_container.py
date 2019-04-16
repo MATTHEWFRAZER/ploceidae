@@ -3,7 +3,7 @@ import types
 from six import with_metaclass
 import pytest
 
-from scope_binding.scope_enum import ScopeEnum
+from pygmy.scope_binding.scope_enum import ScopeEnum
 
 class Dummy(object):
     def __init__(self, a, b, c):
@@ -99,6 +99,7 @@ class TestContainer(object):
 
         assert "a" == container.wire_dependencies(a.non_valid_method) == container.wire_dependencies(a.method)
 
+    @pytest.mark.skip(reason="not supported")
     def test_wire_up_dependencies_with_class_introspection_generated_method(self, container, dependency_decorator):
         @dependency_decorator(global_dependency=True)
         def inner_a(): return "a"

@@ -1,7 +1,8 @@
 from inspect import getsourcefile
 
-from scope_binding.scope_enum import ScopeEnum
+import six
 
+from pygmy.scope_binding.scope_enum import ScopeEnum
 
 class ScopeKey(object):
     def __init__(self, obj):
@@ -30,7 +31,7 @@ class ScopeKey(object):
             raise NotImplementedError("{0} not a valid scope".format(self.scope))
 
     def handle_instance_scope(self):
-        if type(self.obj) is type:
+        if isinstance(self.obj, six.class_types):
             return self.alt_key_format.format(self.scope)
         if hasattr(self.obj, "__name__") and self.obj.__name__ == "__init__":
             return self.alt_key_format.format(self.scope)

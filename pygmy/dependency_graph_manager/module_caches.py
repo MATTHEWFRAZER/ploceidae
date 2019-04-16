@@ -39,7 +39,6 @@ class ModuleCaches(object):
         self.caches[cache_item.module][cache_item.dependency_name] = obj
 
     def clear(self):
-        map(lambda cache: cache.clear(), self.caches)
         self.caches.clear()
 
     def copy(self):

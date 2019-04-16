@@ -3,9 +3,9 @@ from itertools import product
 
 import pytest
 
-from dependency_graph_manager.cache_item import CacheItem
-from container import Container
-from constants import GLOBAL_NAMESPACE
+from pygmy.dependency_graph_manager.cache_item import CacheItem
+from pygmy.container import Container
+from pygmy.constants import GLOBAL_NAMESPACE
 
 class TestDependency:
 
@@ -38,7 +38,7 @@ class TestDependency:
 
     def test_dependency_decorator_has_correct_module(self, dependency_decorator, separate_decorator):
         decorated = dependency_decorator(separate_decorator)
-        assert CacheItem(decorated, None).module == "src.unit_tests.conftest"
+        assert CacheItem(decorated, None).module == "pygmy.unit_tests.conftest"
 
     def test_dependency_application_with_runtime_syntax(self, dependency_decorator):
         application_callback = lambda: dependency_decorator(lambda: None)

@@ -1,6 +1,6 @@
-from inspect import getargspec
 from pprint import pformat
 
+from pygmy.utilities.lib import get_dependencies
 
 class DependencyHelperMethods(object):
     VALID_KWARGS = ("scope", "group", "global_dependency")
@@ -25,7 +25,7 @@ class DependencyHelperMethods(object):
 
     @classmethod
     def decorated_obj_does_not_depend_on_itself(cls, decorated_obj):
-        if decorated_obj.__name__ in getargspec(decorated_obj)[0]:
+        if decorated_obj.__name__ in get_dependencies(decorated_obj):
             raise ValueError("{0} is a dependency on itself".format(decorated_obj.__name__))
 
     @classmethod
@@ -44,4 +44,5 @@ class DependencyHelperMethods(object):
 
     @staticmethod
     def get_dependencies_from_callable_obj(callable_obj, *dependencies_to_ignore):
-        return [dependency for dependency in getargspec(callable_obj)[0] if dependency not in dependencies_to_ignore + ("self", "mcs", "cls")]
+        return [dependency for dependency in get_dependencies(callable_obj) if dependency not in dependencies_to_ignore + ("self", "mcs", "cls")]
+

@@ -1,5 +1,5 @@
-from constants import GLOBAL_NAMESPACE
-from src.utilities.module_name_helper import ModuleNameHelper
+from pygmy.constants import GLOBAL_NAMESPACE
+from pygmy.utilities.module_name_helper import ModuleNameHelper
 
 __all__ = ["CacheItem"]
 

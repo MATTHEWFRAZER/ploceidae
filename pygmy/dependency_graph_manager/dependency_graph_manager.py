@@ -1,10 +1,10 @@
-from inspect import getargspec
 from threading import RLock
 
-from dependency_graph_manager.dependency_graph_cycle_check_methods import DependencyGraphCycleCheckMethods
-from dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
-from dependency_graph_manager.cache_item import CacheItem
-from dependency_graph_manager.dependency_graph import DependencyGraph
+from pygmy.dependency_graph_manager.dependency_graph_cycle_check_methods import DependencyGraphCycleCheckMethods
+from pygmy.dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
+from pygmy.dependency_graph_manager.cache_item import CacheItem
+from pygmy.dependency_graph_manager.dependency_graph import DependencyGraph
+from pygmy.utilities.lib import get_group
 
 
 class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolutionMethods):
@@ -31,7 +31,7 @@ class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolut
         # need to be able to use the other default scopes
         resolved_dependencies = cls.resolve_dependencies_inner(dependency_obj, time_stamp, *dependencies_to_ignore)
         # if we have kwargs, we have a group by name of argument representing kwargs
-        group = getargspec(dependency_obj.dependency_obj)[1]
+        group = get_group(dependency_obj.dependency_obj)
         resolved_dependencies_by_group = []
         if group:
             resolved_dependencies_by_group = cls.resolve_dependencies_by_group(dependency_obj, group, time_stamp)

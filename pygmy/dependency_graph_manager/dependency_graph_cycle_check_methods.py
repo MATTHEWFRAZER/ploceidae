@@ -1,6 +1,9 @@
-from dependency_graph_manager.cache_item import CacheItem
-from constants import GLOBAL_NAMESPACE
+import logging
 
+from pygmy.dependency_graph_manager.cache_item import CacheItem
+from pygmy.constants import GLOBAL_NAMESPACE
+
+logger = logging.getLogger(__name__)
 
 class DependencyGraphCycleCheckMethods(object):
     @classmethod
@@ -8,6 +11,7 @@ class DependencyGraphCycleCheckMethods(object):
         temp_graph = dependency_graph.copy()
         graph_has_topological_sort = cls.topological_sort(temp_graph)
         del temp_graph
+        logger.info("dependency graph has topilogical sort: {0}".format(graph_has_topological_sort))
         return graph_has_topological_sort
 
     @classmethod

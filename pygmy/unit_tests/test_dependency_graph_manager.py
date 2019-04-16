@@ -2,11 +2,11 @@ from datetime import datetime
 
 import pytest
 
-from dependency import Dependency
-from scope_binding.scope_key import ScopeEnum
-from dependency_graph_manager.cache_item import CacheItem
-from dependency_graph_manager.dependency_graph import DependencyGraph
-from constants import GLOBAL_NAMESPACE
+from pygmy.dependency import Dependency
+from pygmy.scope_binding.scope_key import ScopeEnum
+from pygmy.dependency_graph_manager.cache_item import CacheItem
+from pygmy.dependency_graph_manager.dependency_graph import DependencyGraph
+from pygmy.constants import GLOBAL_NAMESPACE
 
 
 class TestDependencyGraphManager(object):

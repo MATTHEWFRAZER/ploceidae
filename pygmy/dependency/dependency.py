@@ -1,9 +1,11 @@
 from functools import wraps
+import logging
 
-from dependency_graph_manager  import DependencyGraphManager
-from dependency.dependency_helper_methods import DependencyHelperMethods
-from dependency.dependency_locator import DependencyLocator
+from pygmy.dependency_graph_manager  import DependencyGraphManager
+from pygmy.dependency.dependency_helper_methods import DependencyHelperMethods
+from pygmy.dependency.dependency_locator import DependencyLocator
 
+logger = logging.getLogger(__name__)
 
 class Dependency(DependencyLocator, DependencyHelperMethods):
     """decorator is a class object because that will make it easier to hook into later"""
@@ -23,13 +25,15 @@ class Dependency(DependencyLocator, DependencyHelperMethods):
 
         # get dependencies before because we need to keep the dependencies for the callable object
         dependencies = self.get_dependencies_from_callable_obj(dependency_obj, *("self", "cls", "mcs"))
+        logger.info("register callbacks to invoke after")
         dependency_obj = self.invoke_callbacks_after(dependency_obj)
         self.init_dependency_inner(dependency_obj)
         self.dependencies = dependencies
         try:
+            logger.info("adding dependency to dependency graph")
             DependencyGraphManager.add_dependency(self, self.global_dependency)
         except ValueError:
-            pass#log
+            logger.error("problem with adding dependency to dependency graph")
         return dependency_obj
 
     def init_dependency_inner(self, callable_obj):
