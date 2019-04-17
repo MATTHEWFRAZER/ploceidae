@@ -9,6 +9,7 @@ builtin_dependencies = {}
 
 class CacheItem(object):
     def __init__(self, obj, dependency_name):
+        self.obj = obj
         self.module = ModuleNameHelper.get_module_name(obj)
         self.dependency_name = dependency_name
 

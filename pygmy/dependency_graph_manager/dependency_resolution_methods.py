@@ -55,6 +55,8 @@ class DependencyResolutionMethods(object):
         for dependency in dependencies:
             dep_obj = cls.find_dependency_obj(dependency, scope_key)
             if dep_obj is None:
+                # we can't validate depenencies before actual dependency resolution, because we might add a dependency
+                # after something declares it in its argument list
                 raise BaseException("{0} doesn't exist".format(dependency))
             cache_item = CacheItem(dep_obj.dependency_obj, dep_obj.dependency_name)
             # if there is no need to resolve arguments
@@ -81,18 +83,22 @@ class DependencyResolutionMethods(object):
 
     @classmethod
     def find_dependency_obj(cls, dependency, scope_key):
-        # resolve the first dependency that has the same module so we get the appropriate dependency object
+        result = cls.resolve_dependency_obj_by_module(dependency, scope_key)
+        return result if result is not None else cls.resolve_dependency_obj_in_dependency_graph(dependency)
+
+    @classmethod
+    def resolve_dependency_obj_by_module(cls, dependency, scope_key):
         for value in cls.DEPENDENCY_GRAPH.values():
             if ModuleNameHelper.get_module_name(value.dependency_obj) == ModuleNameHelper.get_module_name(scope_key.obj) and value.dependency_name == dependency:
                 logger.debug("found dependency object with module match {0}".format(value.dependency_name))
                 return value
 
-        #resolve by name
+    @classmethod
+    def resolve_dependency_obj_in_dependency_graph(cls, dependency):
         for dependency_obj in cls.DEPENDENCY_GRAPH.values():
             if dependency_obj.dependency_name == dependency:
                 logger.debug("found dependency object {0}".format(dependency_obj.dependency_name))
                 return dependency_obj
-
 
     @classmethod
     def resolve_arguments_to_dependencies(cls, dependencies, resolved_graph):

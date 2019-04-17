@@ -32,8 +32,8 @@ class Dependency(DependencyLocator, DependencyHelperMethods):
         try:
             logger.info("adding dependency to dependency graph")
             DependencyGraphManager.add_dependency(self, self.global_dependency)
-        except ValueError:
-            logger.error("problem with adding dependency to dependency graph")
+        except ValueError as ex:
+            logger.error("problem with adding dependency to dependency graph: {}".format(ex))
         return dependency_obj
 
     def init_dependency_inner(self, callable_obj):

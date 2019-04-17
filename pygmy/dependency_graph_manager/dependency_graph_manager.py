@@ -1,4 +1,4 @@
-from threading import RLock
+from threading import Lock
 
 from pygmy.dependency_graph_manager.dependency_graph_cycle_check_methods import DependencyGraphCycleCheckMethods
 from pygmy.dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
@@ -10,7 +10,7 @@ from pygmy.utilities.lib import get_group
 class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolutionMethods):
 
     DEPENDENCY_GRAPH = DependencyGraph()
-    LOCK = RLock()
+    LOCK = Lock()
 
     class ResolutionType:
         DEFAULT = "default"
@@ -35,7 +35,11 @@ class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolut
         resolved_dependencies_by_group = []
         if group:
             resolved_dependencies_by_group = cls.resolve_dependencies_by_group(dependency_obj, group, time_stamp)
-        attributes = {"all_resolved_dependencies": resolved_dependencies + resolved_dependencies_by_group,
+        return type("ResolvedArgs", (), cls.get_attributes_from_resolved_dependencies(resolved_dependencies, resolved_dependencies_by_group))
+
+    @staticmethod
+    def get_attributes_from_resolved_dependencies(resolved_dependencies, resolved_dependencies_by_group):
+        return {"all_resolved_dependencies": resolved_dependencies + resolved_dependencies_by_group,
                       "resolved_dependencies" : resolved_dependencies,
                       "resolved_dependencies_by_group": resolved_dependencies_by_group}
-        return type("ResolvedArgs", (), attributes)
+

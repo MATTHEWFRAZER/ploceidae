@@ -58,11 +58,6 @@ class TestContainer(object):
         wired_up_call = container.wire_dependencies(Dummy("a", "b", "c"))
         assert wired_up_call == "abcbcc"
 
-    @pytest.mark.xfail(raises=BaseException)
-    def test_wire_up_dependencies_with_missing_dependencies(self, container_constructor):
-        def a(b): pass
-        container_constructor.wire_dependencies(a)
-
     def test_partial_wire_up_dependencies(self, partial_dependency_fixture):
 
         def expect_specific_types(a, b):
@@ -124,9 +119,52 @@ class TestContainer(object):
         partially_wired = container.partial_wire_dependencies(WireUp().method)
         assert container.wire_dependencies(WireUp().method) is partially_wired()
 
+    def test_mixed_scope(self, dependency_decorator, container):
+        @dependency_decorator(scope=ScopeEnum.MODULE)
+        def a(): return type("A", (), {})()
+
+        @dependency_decorator(scope=ScopeEnum.CLASS)
+        def b(): return type("B", (), {})()
+
+        @dependency_decorator(scope=ScopeEnum.INSTANCE)
+        def c(): return type("C", (), {})()
+
+        @dependency_decorator(scope=ScopeEnum.SESSION)
+        def d(): return type("D", (), {})()
+
+        @dependency_decorator(scope=ScopeEnum.FUNCTION)
+        def e(): return type("E", (), {})()
+
+        # need a more robust way of testing this
+        a_cache = []
+        b_cache = []
+        c_cache = []
+        d_cache = []
+        e_cache = []
+        class Class(object):
+            def x(self, a, b, c, d, e):
+                assert all(a is item for item in a_cache)
+                assert all(b is item for item in b_cache)
+                assert all(not c is item for item in c_cache)
+                assert all(d is item for item in d_cache)
+                assert all(not e is item for item in e_cache)
+
+                a_cache.append(a)
+                b_cache.append(b)
+                c_cache.append(c)
+                d_cache.append(d)
+                e_cache.append(e)
+
+        for _ in range(10):
+            instance = Class()
+            container.wire_dependencies(instance.x)
+
+
+
     def test_wire_up_dependencies_with_instance_introspection_generated_method(self, container_constructor):
         # test two instances that generate the same methods, class scope should get the same, instance and below should not
         pass
+
     def test_wire_up_dependencies_with_metaclass_generated_methods(self, container, dependency_decorator):
         @dependency_decorator(global_dependency=True)
         def meta_test():
@@ -221,3 +259,32 @@ class TestContainer(object):
                 return dereferenced_test
 
         assert container.wire_dependencies(A.__dict__["s"].__func__) == dereferenced_test.__name__
+
+    @pytest.mark.xfail(raises=BaseException)
+    def test_wire_up_dependencies_with_missing_dependencies(self, container_constructor):
+        def a(b): pass
+
+        container_constructor.wire_dependencies(a)
+
+    @pytest.mark.xfail(raises=BaseException)
+    def test_wire_up_dependencies_to_dependency_with_missing_dependency(self, container, dependency_decorator):
+        # we can't validate depenencies before actual dependency resolution, because we might add a dependency
+        # after something declares it in its argument list
+        @dependency_decorator(global_dependency=True)
+        def a(b): pass
+
+        container.wire_dependencies(a)
+
+    @pytest.mark.xfail(raises=BaseException)
+    def test_wire_up_dependencies_with_missing_terminal_node(self, container, dependency_decorator, dependency_graph):
+        dependency_graph.clear()
+
+        @dependency_decorator(global_dependency=True)
+        def x(y): pass
+
+        @dependency_decorator(global_dependency=True)
+        def y(not_exist): pass
+
+        def test(x): pass
+
+        container.wire_dependencies(test)

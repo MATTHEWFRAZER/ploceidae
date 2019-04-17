@@ -11,9 +11,6 @@ from pygmy.constants import GLOBAL_NAMESPACE
 
 class TestDependencyGraphManager(object):
 
-    # is this the same as saying the graph has cycles? No because the "terminal nodes" can have dependencies that have references to nothing <- valid?
-    def test_resolve_dependencies_when_there_are_no_terminal_nodes(self): pass
-
     def test_resolve_dependencies_for_nodes_that_have_non_linear_sorting(self): pass
 
     @pytest.mark.xfail(raises=ValueError)
@@ -102,10 +99,25 @@ class TestDependencyGraphManager(object):
 
     @pytest.mark.xfail(raises=BaseException)
     def test_resolve_dependencies_with_missing_dependency(self, dependency_graph_manager, scope_key):
+        # we can't validate depenencies before actual dependency resolution, because we might add a dependency
+        # after something declares it in its argument list
         def a(b): pass
 
         dependency_graph_manager.add_dependency(Dependency.get_dependency_without_decoration(a), global_dependency=True)
         dependency_graph_manager.resolve_dependencies(a, scope_key(a))
+
+    @pytest.mark.xfail(raises=BaseException)
+    def test_resolve_dependencies_with_missing_terminal_node(self, dependency_graph_manager, scope_key):
+
+        def x(y): pass
+
+        def y(not_exist): pass
+
+        def test(x): pass
+
+        dependency_graph_manager.add_dependency(Dependency.get_dependency_without_decoration(x), global_dependency=True)
+        dependency_graph_manager.add_dependency(Dependency.get_dependency_without_decoration(y), global_dependency=True)
+        dependency_graph_manager.resolve_dependencies(test, scope_key(test))
 
     @classmethod
     def get_mocked_graph(cls, dependency_graph_node):
