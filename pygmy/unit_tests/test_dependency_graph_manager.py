@@ -11,8 +11,6 @@ from pygmy.constants import GLOBAL_NAMESPACE
 
 class TestDependencyGraphManager(object):
 
-    def test_resolve_dependencies_for_nodes_that_have_non_linear_sorting(self): pass
-
     @pytest.mark.xfail(raises=ValueError)
     def test_acyclic_check_with_indirectly_cyclic_graph(self, dependency_graph_manager, dependency_graph_with_cycle):
         self.add_dependencies(dependency_graph_manager, *dependency_graph_with_cycle)

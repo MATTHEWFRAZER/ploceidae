@@ -60,7 +60,22 @@ class TestScopeManagement:
         assert cache_item in dependency_graph_manager.DEPENDENCY_GRAPH
 
 
-    def test_class_scope_allows_for_multiple_objects(self): pass
+    def test_class_scope_allows_for_multiple_objects(self, container_constructor, dependency_decorator):
+        @dependency_decorator(scope=ScopeEnum.CLASS, global_dependency=True)
+        def mult():
+            return type("B", (), {})()
+
+        class A(object):
+            def x(self, mult):
+                return mult
+
+        one = A()
+        two = A()
+
+
+        assert container_constructor.wire_dependencies(one.x) is container_constructor.wire_dependencies(two.x)
+
+
 
     COUNT = 0
     def test_instance_scope_wires_up_different_dependency_for_each_istance(self, dependency_decorator, container):

@@ -6,7 +6,3 @@ class TestDependencyLocation:
         dependency_instance(l)
         key = scope_key(l)
         assert dependency_instance.locate(key) != dependency_instance.locate(key)
-
-    def test_container_scope_override(self): pass
-
-    def test_alt_key_replacement(self): pass

@@ -161,9 +161,52 @@ class TestContainer(object):
 
 
 
-    def test_wire_up_dependencies_with_instance_introspection_generated_method(self, container_constructor):
+    def test_wire_up_dependencies_with_instance_introspection_generated_method(self, container_constructor, dependency_decorator):
         # test two instances that generate the same methods, class scope should get the same, instance and below should not
-        pass
+        @dependency_decorator(scope=ScopeEnum.CLASS, global_dependency=True)
+        def introspection_class_test():
+            return type("Class", (), {})
+
+        @dependency_decorator(scope=ScopeEnum.INSTANCE, global_dependency=True)
+        def introspection_instance_test():
+            return type("Instance", (), {})
+
+        class A(object):
+            def __init__(self):
+                new_lambda = lambda self, introspection_class_test, introspection_instance_test: (introspection_class_test, introspection_instance_test)
+                new_method = types.MethodType(new_lambda, self)
+                setattr(self, "method", new_method)
+
+        one = A()
+        two = A()
+        first_class, first_instance   = container_constructor.wire_dependencies(one.method)
+        second_class, second_instance = container_constructor.wire_dependencies(two.method)
+        assert first_class is second_class
+        assert first_instance is not second_instance
+
+    @pytest.mark.skip(reason="lambda can't get __self__.__class__")
+    def test_wire_up_dependencies_with_instance_introspection_incorrectly_generated_method(self, container_constructor, dependency_decorator):
+        # test two instances that generate the same methods, class scope should get the same, instance and below should not
+        @dependency_decorator(scope=ScopeEnum.CLASS, global_dependency=True)
+        def introspection_class_test():
+            return type("Class", (), {})
+
+        @dependency_decorator(scope=ScopeEnum.INSTANCE, global_dependency=True)
+        def introspection_instance_test():
+            return type("Instance", (), {})
+
+        class A(object):
+            def __init__(self):
+                new_lambda = lambda self, introspection_class_test, introspection_instance_test: (
+                introspection_class_test, introspection_instance_test)
+                setattr(self, "method", new_lambda)
+
+        one = A()
+        two = A()
+        first_class, first_instance = container_constructor.wire_dependencies(one.method)
+        second_class, second_instance = container_constructor.wire_dependencies(two.method)
+        assert first_class is second_class
+        assert first_instance is not second_instance
 
     def test_wire_up_dependencies_with_metaclass_generated_methods(self, container, dependency_decorator):
         @dependency_decorator(global_dependency=True)

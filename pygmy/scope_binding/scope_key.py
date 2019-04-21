@@ -22,13 +22,19 @@ class ScopeKey(object):
         elif self.scope == ScopeEnum.MODULE:
             return "{0}".format(getsourcefile(self.obj))
         elif self.scope == ScopeEnum.CLASS:
-            return "{0}".format(self.obj.__self__.__class__)
+            return self.handle_class_scope()
         elif self.scope == ScopeEnum.INSTANCE:
             return self.handle_instance_scope()
         elif self.scope == ScopeEnum.FUNCTION:
             return self.handle_function_scope()
         else:
             raise NotImplementedError("{0} not a valid scope".format(self.scope))
+
+    def handle_class_scope(self):
+        try:
+            return "{0}".format(self.obj.__self__.__class__)
+        except AttributeError: # TODO PYGMY 11: if obj is for some reason not bound correctly (i.e. dynamically set method like a lambda)
+            raise ValueError("{0} does not have a __self__.__class__ reference to resolve class scope for".format(self.obj))
 
     def handle_instance_scope(self):
         if isinstance(self.obj, six.class_types):
