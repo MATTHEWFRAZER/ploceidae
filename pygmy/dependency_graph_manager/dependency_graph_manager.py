@@ -12,10 +12,6 @@ class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolut
     DEPENDENCY_GRAPH = DependencyGraph()
     LOCK = Lock()
 
-    class ResolutionType:
-        DEFAULT = "default"
-        GROUP = "group"
-
     @classmethod
     def add_dependency(cls, dependency_obj, global_dependency=None):
         cache_item = CacheItem.cache_item_factory_method(dependency_obj, global_dependency)

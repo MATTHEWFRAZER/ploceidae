@@ -55,7 +55,7 @@ class DependencyResolutionMethods(object):
         for dependency in dependencies:
             dep_obj = cls.find_dependency_obj(dependency, scope_key)
             if dep_obj is None:
-                # we can't validate depenencies before actual dependency resolution, because we might add a dependency
+                # we can't validate dependencies before actual dependency resolution, because we might add a dependency
                 # after something declares it in its argument list
                 raise BaseException("{0} doesn't exist".format(dependency))
             cache_item = CacheItem(dep_obj.dependency_obj, dep_obj.dependency_name)
@@ -110,8 +110,3 @@ class DependencyResolutionMethods(object):
                 return []
         logger.debug("resolving dependencies as arguments to dependency object {0}".format(dependencies))
         return resolved_arguments
-
-
-    @classmethod
-    def get_cache_item(cls, dependent, dependency_name):
-        return CacheItem(dependent, dependency_name)

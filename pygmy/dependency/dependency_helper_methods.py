@@ -1,5 +1,6 @@
 from pprint import pformat
 
+from pygmy.constants import BINDINGS
 from pygmy.utilities.lib import get_dependencies
 
 class DependencyHelperMethods(object):
@@ -44,5 +45,5 @@ class DependencyHelperMethods(object):
 
     @staticmethod
     def get_dependencies_from_callable_obj(callable_obj, *dependencies_to_ignore):
-        return [dependency for dependency in get_dependencies(callable_obj) if dependency not in dependencies_to_ignore + ("self", "mcs", "cls")]
+        return [dependency for dependency in get_dependencies(callable_obj) if dependency not in dependencies_to_ignore + BINDINGS]
 

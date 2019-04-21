@@ -1,6 +1,7 @@
 from functools import wraps
 import logging
 
+from pygmy.constants import BINDINGS
 from pygmy.dependency_graph_manager  import DependencyGraphManager
 from pygmy.dependency.dependency_helper_methods import DependencyHelperMethods
 from pygmy.dependency.dependency_locator import DependencyLocator
@@ -24,7 +25,7 @@ class Dependency(DependencyLocator, DependencyHelperMethods):
         self.input_validation_for_dependency_obj(dependency_obj)
 
         # get dependencies before because we need to keep the dependencies for the callable object
-        dependencies = self.get_dependencies_from_callable_obj(dependency_obj, *("self", "cls", "mcs"))
+        dependencies = self.get_dependencies_from_callable_obj(dependency_obj, *BINDINGS)
         logger.info("register callbacks to invoke after")
         dependency_obj = self.invoke_callbacks_after(dependency_obj)
         self.init_dependency_inner(dependency_obj)
@@ -38,7 +39,7 @@ class Dependency(DependencyLocator, DependencyHelperMethods):
 
     def init_dependency_inner(self, callable_obj):
         super(Dependency, self).__init__(self.scope, callable_obj)
-        self.dependencies = self.get_dependencies_from_callable_obj(callable_obj, *("self", "cls", "mcs"))
+        self.dependencies = self.get_dependencies_from_callable_obj(callable_obj, *BINDINGS)
         self.dependency_name = callable_obj.__name__
 
     def invoke_callbacks_after(self, func):
@@ -48,9 +49,6 @@ class Dependency(DependencyLocator, DependencyHelperMethods):
             for callback in self.callbacks: callback()
             return cached
         return nested
-
-    def register_callback_after_function(self, callback):
-        self.callbacks.append(callback)
 
     @classmethod
     def get_dependency_without_decoration(cls, dependency_obj, global_dependency=None):
