@@ -18,7 +18,7 @@ class ScopeKey(object):
 
     def __repr__(self):
         if self.scope == ScopeEnum.SESSION:
-            return "null"
+            return "session"
         elif self.scope == ScopeEnum.MODULE:
             return "{0}".format(getsourcefile(self.obj))
         elif self.scope == ScopeEnum.CLASS:

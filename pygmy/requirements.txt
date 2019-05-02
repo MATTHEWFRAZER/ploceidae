@@ -2,3 +2,4 @@ six
 PyMonad
 pytest
 pytest-mock
+pytest-cov
