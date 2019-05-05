@@ -3,11 +3,51 @@ from itertools import product
 
 import pytest
 
+from pygmy.dependency import dependency
 from pygmy.dependency_graph_manager.cache_item import CacheItem
 from pygmy.container import Container
 from pygmy.constants import GLOBAL_NAMESPACE
+from pygmy.dependency.lib import *
 
 class TestDependency:
+
+    @pytest.mark.parametrize("class_name,expected", [("ClassName", "class_name"), ("ClassName1", "class_name1"), ("A", "a"), ("AA", "a_a")])
+    def test_class_names_are_converted_correctly(self, class_name, expected):
+        assert class_name_to_dependency_name(class_name) == expected
+
+    @pytest.mark.parametrize("class_name",["className", "1ClassName", " ", "Class Name", "Class#Name", ""])
+    @pytest.mark.xfail(raises=ValueError)
+    def test_invalid_class_names(self, class_name):
+        class_name_to_dependency_name(class_name)
+
+    @pytest.mark.xfail(raises=ValueError)
+    def test_no_class_instance_passed_args(self):
+        get_class_instance_from_args()
+
+    def test_class_decorator(self):
+        @dependency(global_dependency=True)
+        def class_decorator_test():
+            return class_decorator_test.__name__
+
+        @dependency
+        class DecoratedClass(object):
+            INSTANCE = None
+
+            # Also get to test how pygmy interacts with __new__!
+            def __new__(cls, class_decorator_test):
+                assert class_decorator_test == "class_decorator_test"
+
+                if not cls.INSTANCE:
+                    cls.INSTANCE = super(DecoratedClass, cls).__new__(cls, class_decorator_test)
+                return cls.INSTANCE
+
+            def __init__(self, class_decorator_test):
+                assert class_decorator_test == "class_decorator_test"
+
+        def verify(decorated_class):
+            assert decorated_class is decorated_class.INSTANCE
+
+        Container.wire_dependencies(verify)
 
     @pytest.mark.parametrize("global_bool1,global_bool2", product([True, False], repeat=2))
     def test_duplicate_dependency_name_with_different_dependency_resolution_scheme(self, global_bool1, global_bool2, dependency_decorator, dependency_graph_manager):

@@ -7,8 +7,7 @@ import pytest
 sys.path.append("..")
 from pygmy.dependency_graph_manager import DependencyGraphManager
 from pygmy.container import Container
-from pygmy.dependency import dependency
-from pygmy.dependency import Dependency
+from pygmy.dependency import dependency, Dependency
 from pygmy.scope_binding.scope_enum import ScopeEnum
 from pygmy.scope_binding.scope_key import ScopeKey
 from pygmy.utilities.logging_utilities import configure_pygmy_logging
