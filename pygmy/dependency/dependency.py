@@ -1,10 +1,10 @@
-from functools import wraps
 import logging
 
 from pygmy.constants import BINDINGS
 from pygmy.dependency_graph_manager  import DependencyGraphManager
 from pygmy.dependency.dependency_helper_methods import DependencyHelperMethods
 from pygmy.dependency.dependency_locator import DependencyLocator
+from pygmy.dependency.lib import class_name_to_dependency_name, invoke_callbacks_after
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class Dependency(DependencyLocator, DependencyHelperMethods):
         # get dependencies before because we need to keep the dependencies for the callable object
         dependencies = self.get_dependencies_from_callable_obj(dependency_obj, *BINDINGS)
         logger.info("register callbacks to invoke after")
-        dependency_obj = self.invoke_callbacks_after(dependency_obj)
+        dependency_obj = invoke_callbacks_after(self.callbacks, dependency_obj)
         self.init_dependency_inner(dependency_obj)
         self.dependencies = dependencies
         try:
@@ -41,30 +41,11 @@ class Dependency(DependencyLocator, DependencyHelperMethods):
         super(Dependency, self).__init__(self.scope, callable_obj)
         self.dependencies = self.get_dependencies_from_callable_obj(callable_obj, *BINDINGS)
         self.dependency_name = callable_obj.__name__
-
-    def invoke_callbacks_after(self, func):
-        @wraps(func)
-        def nested(*unresolved_dependencies, **kwargs):
-            cached = func(*unresolved_dependencies, **kwargs)
-            for callback in self.callbacks: callback()
-            return cached
-        return nested
+        if self.dependency_name and self.dependency_name[0].isupper():
+            self.dependency_name = class_name_to_dependency_name(self.dependency_name)
 
     @classmethod
     def get_dependency_without_decoration(cls, dependency_obj, global_dependency=None):
         dependency = cls(global_dependency=global_dependency)
         dependency.init_dependency_inner(dependency_obj)
         return dependency
-
-    @classmethod
-    def control_initialization(cls, *args, **kwargs):
-        """
-        this makes it so that dependency can be invoked as a decorator without calling it with empty args. need args and
-        kwargs here because it needs to be called like __init__ or __call__
-        """
-        if kwargs:
-            # if we're calling it like __init__
-            return cls(**kwargs)
-        else:
-            # if we're calling it like __call__
-            return cls()(*args)
