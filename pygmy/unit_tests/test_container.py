@@ -155,8 +155,11 @@ class TestContainer(object):
                 d_cache.append(d)
                 e_cache.append(e)
 
+        # had an issue where an instance would get the same address as a previous one
+        obj_cache = []
         for _ in range(10):
             instance = Class()
+            obj_cache.append(instance)
             container.wire_dependencies(instance.x)
 
 
