@@ -1,12 +1,16 @@
 language: python
-python:
-  - "2.7"
-  - "3.3"
-  - "3.4"
-  - "3.5"
-  - "3.6"
-  - "3.7"
+matrix:
+  include:
+  - name: "3.5"
+    python: "3.5"
+    env: TEST_CMD=pytest --cov=pygmy
+  - name: "everything else"
+    python:
+      - "3.6"
+      - "3.7"
+      - "3.6"
+      - "3.7"
+    env: TEST_CMD=pytest
 install:
   - pip install -r pygmy/requirements.txt
-script:
-  - pytest --cov=pygmy
+script: $TEST_CMD
