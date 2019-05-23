@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 with open(path.join("pygmy", "requirements.txt")) as req:
     # handles custom package repos
-    requirements = [requirement for i in requirement in req.read().splitlines() if not requirement.startswith("-")]
+    requirements = [requirement for requirement in req.read().splitlines() if not requirement.startswith("-")]
 
 setup(name="pygmy",
       install_requires=requirements,
