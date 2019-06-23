@@ -1,7 +1,7 @@
 from pprint import pformat
 
-from pygmy.constants import BINDINGS
-from pygmy.utilities.lib import get_dependencies
+from ploceidae.constants import BINDINGS
+from ploceidae.utilities.lib import get_dependencies
 
 class DependencyHelperMethods(object):
     VALID_KWARGS = ("scope", "group", "global_dependency")

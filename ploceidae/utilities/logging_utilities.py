@@ -8,7 +8,7 @@ def configure_pygmy_logging(log_level):
     logging.basicConfig(level=log_level,
                         format='%(asctime)s : %(levelname)-5s : [	%(module)s - %(funcName)s] => %(message)s',
                         datefmt='%m-%d %H:%M',
-                        filename=path.join(artifacts, "pygmy.log"),
+                        filename=path.join(artifacts, "ploceidae.log"),
                         filemode='w')
     logging.getLogger('').addFilter(PygmyFilter())
 
@@ -16,4 +16,4 @@ class PygmyFilter(logging.Filter):
 
     def filter(self, record):
         print(record.pathname)
-        return not record.pathname.startswith("pygmy.")
+        return not record.pathname.startswith("ploceidae.")

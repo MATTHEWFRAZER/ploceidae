@@ -2,7 +2,7 @@ from inspect import getsourcefile
 
 import six
 
-from pygmy.scope_binding.scope_enum import ScopeEnum
+from ploceidae.scope_binding.scope_enum import ScopeEnum
 
 class ScopeKey(object):
     def __init__(self, obj):

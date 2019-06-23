@@ -1,10 +1,10 @@
 from threading import Lock
 
-from pygmy.dependency_graph_manager.dependency_graph_cycle_check_methods import DependencyGraphCycleCheckMethods
-from pygmy.dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
-from pygmy.dependency_graph_manager.cache_item import CacheItem
-from pygmy.dependency_graph_manager.dependency_graph import DependencyGraph
-from pygmy.utilities.lib import get_group
+from ploceidae.dependency_graph_manager.dependency_graph_cycle_check_methods import DependencyGraphCycleCheckMethods
+from ploceidae.dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
+from ploceidae.dependency_graph_manager.cache_item import CacheItem
+from ploceidae.dependency_graph_manager.dependency_graph import DependencyGraph
+from ploceidae.utilities.lib import get_group
 
 
 class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolutionMethods):

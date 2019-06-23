@@ -2,10 +2,10 @@ from datetime import datetime
 import logging
 from pprint import pformat
 
-from pygmy.dependency_graph_manager import DependencyGraphManager
-from pygmy.dependency import Dependency
-from pygmy.dependency.dependency_helper_methods import DependencyHelperMethods
-from pygmy.container.partial_injection import PartialInjection
+from ploceidae.dependency_graph_manager import DependencyGraphManager
+from ploceidae.dependency import Dependency
+from ploceidae.dependency.dependency_helper_methods import DependencyHelperMethods
+from ploceidae.container.partial_injection import PartialInjection
 
 logger = logging.getLogger(__name__)
 

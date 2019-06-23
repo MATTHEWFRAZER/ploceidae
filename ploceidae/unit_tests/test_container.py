@@ -3,7 +3,7 @@ import types
 from six import with_metaclass
 import pytest
 
-from pygmy.scope_binding.scope_enum import ScopeEnum
+from ploceidae.scope_binding.scope_enum import ScopeEnum
 
 class Dummy(object):
     def __init__(self, a, b, c):
