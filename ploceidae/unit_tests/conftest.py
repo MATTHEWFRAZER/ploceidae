@@ -5,12 +5,12 @@ import sys
 import pytest
 
 sys.path.append("..")
-from pygmy.dependency_graph_manager import DependencyGraphManager
-from pygmy.container import Container
-from pygmy.dependency import dependency
-from pygmy.dependency import Dependency
-from pygmy.scope_binding.scope_enum import ScopeEnum
-from pygmy.scope_binding.scope_key import ScopeKey
+from ploceidae.dependency_graph_manager import DependencyGraphManager
+from ploceidae.container import Container
+from ploceidae.dependency import dependency
+from ploceidae.dependency import Dependency
+from ploceidae.scope_binding.scope_enum import ScopeEnum
+from ploceidae.scope_binding.scope_key import ScopeKey
 
 class Dummy(): pass
 

@@ -1,10 +1,10 @@
 from functools import wraps
 import logging
 
-from pygmy.constants import BINDINGS
-from pygmy.dependency_graph_manager  import DependencyGraphManager
-from pygmy.dependency.dependency_helper_methods import DependencyHelperMethods
-from pygmy.dependency.dependency_locator import DependencyLocator
+from ploceidae.constants import BINDINGS
+from ploceidae.dependency_graph_manager  import DependencyGraphManager
+from ploceidae.dependency.dependency_helper_methods import DependencyHelperMethods
+from ploceidae.dependency.dependency_locator import DependencyLocator
 
 logger = logging.getLogger(__name__)
 

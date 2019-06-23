@@ -1,8 +1,8 @@
 import pytest
 
-from pygmy.scope_binding.scope_enum import ScopeEnum
-from pygmy.dependency_graph_manager.cache_item import CacheItem
-from pygmy.constants import GLOBAL_NAMESPACE
+from ploceidae.scope_binding.scope_enum import ScopeEnum
+from ploceidae.dependency_graph_manager.cache_item import CacheItem
+from ploceidae.constants import GLOBAL_NAMESPACE
 
 
 class TestScopeManagement:
