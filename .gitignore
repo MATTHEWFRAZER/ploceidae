@@ -4,3 +4,5 @@ __pycache__
 .coverage
 .idea
 artifacts
+pygmy.egg-info
+dist
