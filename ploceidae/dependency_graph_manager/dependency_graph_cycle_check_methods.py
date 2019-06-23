@@ -2,10 +2,10 @@ import logging
 
 from pymonad import Functor
 
-from pygmy.constants import GLOBAL_NAMESPACE
-from pygmy.dependency_graph_manager.cache_item import CacheItem
-from pygmy.utilities.pygmy_reduce import pygmy_reduce
-from pygmy.utilities.reduce_operand import ReduceOperand
+from ploceidae.constants import GLOBAL_NAMESPACE
+from ploceidae.dependency_graph_manager.cache_item import CacheItem
+from ploceidae.utilities.pygmy_reduce import pygmy_reduce
+from ploceidae.utilities.reduce_operand import ReduceOperand
 
 logger = logging.getLogger(__name__)
 

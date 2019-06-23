@@ -1,7 +1,7 @@
 import logging
 
-from pygmy.scope_binding.scope_enum import ScopeEnum
-from pygmy.scope_binding.scope_key import ScopeKey
+from ploceidae.scope_binding.scope_enum import ScopeEnum
+from ploceidae.scope_binding.scope_key import ScopeKey
 
 logger = logging.getLogger(__name__)
 

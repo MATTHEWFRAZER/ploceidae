@@ -1,4 +1,4 @@
-from pygmy.dependency.dependency import Dependency
+from ploceidae.dependency.dependency import Dependency
 
 __all__ = ["dependency", "Dependency"]
 

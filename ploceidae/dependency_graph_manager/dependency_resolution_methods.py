@@ -1,9 +1,9 @@
 import logging
 from pprint import pformat
 
-from pygmy.scope_binding.scope_key import ScopeKey
-from pygmy.dependency_graph_manager.cache_item import CacheItem
-from pygmy.utilities.module_name_helper import ModuleNameHelper
+from ploceidae.scope_binding.scope_key import ScopeKey
+from ploceidae.dependency_graph_manager.cache_item import CacheItem
+from ploceidae.utilities.module_name_helper import ModuleNameHelper
 
 logger = logging.getLogger(__name__)
 
