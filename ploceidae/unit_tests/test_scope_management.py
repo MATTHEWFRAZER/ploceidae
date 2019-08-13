@@ -1,5 +1,4 @@
-import pytest
-
+from ploceidae.container import Container
 from ploceidae.scope_binding.scope_enum import ScopeEnum
 from ploceidae.dependency_graph_manager.cache_item import CacheItem
 from ploceidae.constants import GLOBAL_NAMESPACE
@@ -98,12 +97,12 @@ class TestScopeManagement:
         assert result_a1 != result_a2
         assert result_a1 == result_a1_prime
 
-    def test_module_scope_resolves_different_objects_to_different_modules(self, resolved_object, container_with_no_setup, dummy):
+    def test_module_scope_resolves_different_objects_to_different_modules(self, resolved_object, dummy):
 
         def b(a):
             return a
 
-        first = container_with_no_setup.wire_dependencies(b)
+        first = Container.wire_dependencies(b)
 
         assert type(first) is type(resolved_object) is type(dummy)
         assert resolved_object is not first
@@ -126,13 +125,13 @@ class TestScopeManagement:
                 return conflict
         assert container.wire_dependencies(WireUp.method2) is container.wire_dependencies(WireUp().method)
 
-    def test_module_scope_resolves_same_object_in_same_module(self, container_with_no_setup, dependency_decorator, dummy):
-        self.scope_test(ScopeEnum.MODULE, container_with_no_setup, dependency_decorator, dummy)
+    def test_module_scope_resolves_same_object_in_same_module(self, dependency_decorator, dummy):
+        self.scope_test(ScopeEnum.MODULE, dependency_decorator, dummy)
 
-    def test_session_scope_does_not_allow_for_multiple_objects(self, container_with_no_setup, dependency_decorator, dummy):
-        self.scope_test(ScopeEnum.SESSION, container_with_no_setup, dependency_decorator, dummy)
+    def test_session_scope_does_not_allow_for_multiple_objects(self, dependency_decorator, dummy):
+        self.scope_test(ScopeEnum.SESSION, dependency_decorator, dummy)
 
-    def scope_test(self, scope_name, container_with_no_setup, dependency_decorator, dummy):
+    def scope_test(self, scope_name, dependency_decorator, dummy):
         @dependency_decorator(scope=scope_name, global_dependency=True)
         def a():
             return dummy
@@ -143,9 +142,9 @@ class TestScopeManagement:
         def c(a):
             return a
 
-        first = container_with_no_setup.wire_dependencies(b)
-        second = container_with_no_setup.wire_dependencies(b)
-        third = container_with_no_setup.wire_dependencies(c)
+        first = Container.wire_dependencies(b)
+        second = Container.wire_dependencies(b)
+        third = Container.wire_dependencies(c)
 
         assert type(first) is type(second) is type(third) is type(dummy)
         assert first is second

@@ -1,5 +1,4 @@
 from functools import partial
-import logging
 import sys
 
 import pytest
@@ -7,16 +6,11 @@ import pytest
 sys.path.append("..")
 from ploceidae.dependency_graph_manager import DependencyGraphManager
 from ploceidae.container import Container
-from ploceidae.dependency import dependency
 from ploceidae.dependency import Dependency
+from ploceidae.dependency import dependency
 from ploceidae.scope_binding.scope_enum import ScopeEnum
-from ploceidae.scope_binding.scope_key import ScopeKey
 
 class Dummy(): pass
-
-@pytest.fixture
-def dependency_class_obj():
-    return Dependency
 
 @pytest.fixture
 def dependency_graph_manager():
@@ -42,10 +36,6 @@ def dependency_graph(dependency_init):
     return dependency_init(a), dependency_init(b), dependency_init(c)
 
 @pytest.fixture
-def scope_key():
-    return ScopeKey
-
-@pytest.fixture
 def dependency_graph2(dependency_init):
     def d(e): return "d" + e
     def e(f): return "e" + f
@@ -69,12 +59,8 @@ def dependency_graph_node_with_no_in_edges(dependency_init):
     return dependency_init(lambda: None)
 
 @pytest.fixture
-def dependency_init(dependency_class_obj):
-    return partial(dependency_class_obj.get_dependency_without_decoration, global_dependency=True)
-
-@pytest.fixture
-def container_with_no_setup():
-    return Container
+def dependency_init():
+    return partial(Dependency.get_dependency_without_decoration, global_dependency=True)
 
 @pytest.fixture
 def dummy():
@@ -88,10 +74,10 @@ def object_to_resolve(dependency_decorator):
     return a
 
 @pytest.fixture
-def resolved_object(container_with_no_setup, object_to_resolve):
+def resolved_object(object_to_resolve):
     def b(a):
         return a
-    return container_with_no_setup.wire_dependencies(b)
+    return Container.wire_dependencies(b)
 
 @pytest.fixture
 def container(dependency_graph_with_obj_that_depends_on_all_other_nodes, dependency_graph_manager):

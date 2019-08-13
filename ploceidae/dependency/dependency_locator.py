@@ -11,22 +11,23 @@ class DependencyLocator(object):
         self.services = {}
         self.dependency_obj = dependency_obj
 
-    def delete_entry_from_service_locator(self, scope_key):
-        del self.services[scope_key]
-
     def locate(self, scope_key, *resolved_dependencies):
         scope_key.init_scope(self.scope)
         scope_key_string = str(scope_key)
         logger.debug("locating service {0} on dependency {1}".format(str(scope_key), self.dependency_obj))
-        # need to check alt_key because __init__ and possibly other methods wont get instance until wired but
+        # need to check alt_key because __init__ and possibly other methods won't get instance until wired but
         # are still valid
         try:
-            return self.services[scope_key_string]
+            value = self.services[scope_key_string]
+            if value is not None:
+                return value
+            else:
+                raise KeyError
         except KeyError:
-            cached = self.dependency_obj(*resolved_dependencies)
+            resolved_dependencies = self.dependency_obj(*resolved_dependencies)
             if self.scope != ScopeEnum.FUNCTION:
-                self.services[scope_key_string] = cached
-            return cached
+                self.services[scope_key_string] = resolved_dependencies
+            return resolved_dependencies
 
     def replace_alt_keys_with_valid_scope_from_instance(self, obj, obj_to_wire_up, time_stamp):
         # all this "instance issue stuff" has to do with delivering to an __init__; with an instance scope with an __init__,
