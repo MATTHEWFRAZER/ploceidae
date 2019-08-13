@@ -4,6 +4,7 @@ import pytest
 
 from ploceidae.dependency import Dependency
 from ploceidae.scope_binding.scope_key import ScopeEnum
+from ploceidae.scope_binding.scope_key import ScopeKey
 from ploceidae.dependency_graph_manager.cache_item import CacheItem
 from ploceidae.dependency_graph_manager.dependency_graph import DependencyGraph
 from ploceidae.constants import GLOBAL_NAMESPACE
@@ -75,19 +76,19 @@ class TestDependencyGraphManager(object):
         self.add_dependencies(dependency_graph_manager, a, b)
 
     # do we want to test this behavior?
-    def test_resolve_dependencies_after_adding_dependency(self, dependency_graph, scope_key, dependency_graph_manager):
-        scope_key_obj = self.scope_key_init(scope_key, dependency_graph[-1], ScopeEnum.FUNCTION, datetime.now())
-        scope_key_obj2 = self.scope_key_init(scope_key, dependency_graph[-2], ScopeEnum.FUNCTION, datetime.now())
+    def test_resolve_dependencies_after_adding_dependency(self, dependency_graph, dependency_graph_manager):
+        scope_key_obj = self.scope_key_init(dependency_graph[-1], ScopeEnum.FUNCTION, datetime.now())
+        scope_key_obj2 = self.scope_key_init(dependency_graph[-2], ScopeEnum.FUNCTION, datetime.now())
         assert not dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key_obj).all_resolved_dependencies
         dependency_graph_manager.add_dependency(dependency_graph[-1], global_dependency=True)
         assert dependency_graph_manager.resolve_dependencies(dependency_graph[-2], scope_key_obj2).resolved_dependencies[0] == dependency_graph[-1].dependency_obj.__name__
 
-    def test_resolve_dependencies_with_dependent_that_has_no_dependencies(self, dependency_graph, dependency_graph_manager, scope_key):
-        scope_key_obj = self.scope_key_init(scope_key, dependency_graph[-1], ScopeEnum.FUNCTION, datetime.now())
+    def test_resolve_dependencies_with_dependent_that_has_no_dependencies(self, dependency_graph, dependency_graph_manager):
+        scope_key_obj = self.scope_key_init(dependency_graph[-1], ScopeEnum.FUNCTION, datetime.now())
         assert not dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key_obj).all_resolved_dependencies
 
-    def test_resolve_dependencies(self, dependency_graph_manager, dependency_graph, scope_key):
-        scope_key_obj = self.scope_key_init(scope_key, dependency_graph[0].dependency_obj, ScopeEnum.FUNCTION, datetime.now())
+    def test_resolve_dependencies(self, dependency_graph_manager, dependency_graph):
+        scope_key_obj = self.scope_key_init(dependency_graph[0].dependency_obj, ScopeEnum.FUNCTION, datetime.now())
         try:
             self.add_dependencies(dependency_graph_manager, *dependency_graph)
             dependencies = dependency_graph_manager.resolve_dependencies(dependency_graph[0], scope_key_obj)
@@ -96,16 +97,16 @@ class TestDependencyGraphManager(object):
             pytest.fail("dependency resolution failed:{0}".format(ex))
 
     @pytest.mark.xfail(raises=BaseException)
-    def test_resolve_dependencies_with_missing_dependency(self, dependency_graph_manager, scope_key):
+    def test_resolve_dependencies_with_missing_dependency(self, dependency_graph_manager):
         # we can't validate depenencies before actual dependency resolution, because we might add a dependency
         # after something declares it in its argument list
         def a(b): pass
 
         dependency_graph_manager.add_dependency(Dependency.get_dependency_without_decoration(a), global_dependency=True)
-        dependency_graph_manager.resolve_dependencies(a, scope_key(a))
+        dependency_graph_manager.resolve_dependencies(a, ScopeKey(a))
 
     @pytest.mark.xfail(raises=BaseException)
-    def test_resolve_dependencies_with_missing_terminal_node(self, dependency_graph_manager, scope_key):
+    def test_resolve_dependencies_with_missing_terminal_node(self, dependency_graph_manager):
 
         def x(y): pass
 
@@ -115,7 +116,7 @@ class TestDependencyGraphManager(object):
 
         dependency_graph_manager.add_dependency(Dependency.get_dependency_without_decoration(x), global_dependency=True)
         dependency_graph_manager.add_dependency(Dependency.get_dependency_without_decoration(y), global_dependency=True)
-        dependency_graph_manager.resolve_dependencies(test, scope_key(test))
+        dependency_graph_manager.resolve_dependencies(test, ScopeKey(test))
 
     @classmethod
     def get_mocked_graph(cls, dependency_graph_node):
@@ -130,8 +131,8 @@ class TestDependencyGraphManager(object):
             dependency_graph_manager.add_dependency(dependency, global_dependency=True)
 
     @staticmethod
-    def scope_key_init(scope_key, obj, scope, time_stamp):
-        scope_key_obj = scope_key(obj)
+    def scope_key_init(obj, scope, time_stamp):
+        scope_key_obj = ScopeKey(obj)
         scope_key_obj.init_scope(scope)
         scope_key_obj.init_alt_key(time_stamp)
         return scope_key_obj

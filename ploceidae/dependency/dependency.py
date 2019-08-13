@@ -12,6 +12,10 @@ class Dependency(DependencyLocator, DependencyHelperMethods):
     """decorator is a class object because that will make it easier to hook into later"""
 
     def __init__(self, **kwargs):
+        """
+        :param kwargs: scope determines how the dependency is delivered (if we cache it or not), allows for grouping dependencies,
+        global_dependency determines the visibility of dependency (True means dependency is visible independent of its module position)
+        """
         self.input_validation_to_init(kwargs)
         self.scope = kwargs.get("scope", "function")
         self.group = kwargs.get("group")
