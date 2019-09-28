@@ -1,7 +1,10 @@
 from functools import partial
+from itertools import chain
 import sys
 
 import pytest
+
+from ploceidae.dependency_graph_manager.dependency_graph import DependencyGraph
 
 sys.path.append("..")
 from ploceidae.dependency_graph_manager import DependencyGraphManager
@@ -13,9 +16,11 @@ from ploceidae.scope_binding.scope_enum import ScopeEnum
 class Dummy(): pass
 
 @pytest.fixture
-def dependency_graph_manager():
-    yield DependencyGraphManager
-    DependencyGraphManager.DEPENDENCY_GRAPH.clear()
+def default_dependency_graph_manager():
+    dependency_graph_manager = DependencyGraphManager(DependencyGraph())
+    Dependency.DEPENDENCY_GRAPH_MANAGER = dependency_graph_manager
+    yield dependency_graph_manager
+    dependency_graph_manager.dependency_graph.clear()
 
 @pytest.fixture
 def dependency_graph_with_cycle(dependency_init):
@@ -67,33 +72,41 @@ def dummy():
     return Dummy()
 
 @pytest.fixture
-def object_to_resolve(dependency_decorator):
+def object_to_resolve(dependency_decorator, default_dependency_graph_manager):
+
+    #TODO: HACK ALERT
+    dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER = default_dependency_graph_manager
     @dependency_decorator(scope=ScopeEnum.MODULE, global_dependency=True)
     def a():
         return Dummy()
     return a
 
 @pytest.fixture
-def resolved_object(object_to_resolve):
+def resolved_object(object_to_resolve, dependency_decorator, default_container):
+
+    # TODO: HACK ALERT
+    default_container.dependency_graph_manager = dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER
     def b(a):
         return a
-    return Container.wire_dependencies(b)
+    return default_container.wire_dependencies(b)
 
 @pytest.fixture
-def container(dependency_graph_with_obj_that_depends_on_all_other_nodes, dependency_graph_manager):
+def container(dependency_graph_with_obj_that_depends_on_all_other_nodes):
+    dependency_graph_manager = DependencyGraphManager(DependencyGraph())
     for dependency in dependency_graph_with_obj_that_depends_on_all_other_nodes:
         dependency_graph_manager.add_dependency(dependency, global_dependency=True)
-    return Container
+    container = Container(dependency_graph_manager)
+    return container
 
 @pytest.fixture
-def container_constructor():
-    DependencyGraphManager.DEPENDENCY_GRAPH.clear()
-    return Container
+def default_container(default_dependency_graph_manager):
+    return Container(default_dependency_graph_manager)
 
 @pytest.fixture
-def container2(dependency_graph2, dependency_graph_manager, container):
-    for dependency in dependency_graph2:
-        dependency_graph_manager.add_dependency(dependency, global_dependency=True)
+def container2(dependency_graph2, dependency_graph_with_obj_that_depends_on_all_other_nodes, default_dependency_graph_manager):
+    for dependency in chain.from_iterable((dependency_graph2, dependency_graph_with_obj_that_depends_on_all_other_nodes)):
+        default_dependency_graph_manager.add_dependency(dependency, global_dependency=True)
+    container = Container(default_dependency_graph_manager)
     return container
 
 @pytest.fixture
@@ -131,8 +144,7 @@ def dependency_graph_node():
 
 @pytest.fixture
 def dependency_decorator():
-    yield dependency
-    DependencyGraphManager.DEPENDENCY_GRAPH.clear()
+    return dependency
 
 
 @pytest.fixture(params=[(("a",), ("abc",)), (("b",), ("bc",)), (("a", "b"), ("abc", "bc"))])

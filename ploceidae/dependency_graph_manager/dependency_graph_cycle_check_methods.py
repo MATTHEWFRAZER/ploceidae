@@ -4,7 +4,7 @@ from pymonad import Functor
 
 from ploceidae.constants import GLOBAL_NAMESPACE
 from ploceidae.dependency_graph_manager.cache_item import CacheItem
-from ploceidae.utilities.pygmy_reduce import pygmy_reduce
+from ploceidae.utilities.interoperable_reduce import interoperable_reduce
 from ploceidae.utilities.reduce_operand import ReduceOperand
 
 logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ class DependencyGraphCycleCheckMethods(object):
             return not any(cls.dependency_appears_in_temp_graph(dependency, node, temp_graph) for dependency in dependencies)
 
         reduce_operand = ReduceOperand(no_dependencies_appear_in_temp_graph)
-        return pygmy_reduce(lambda x, y: x & Functor(y), node.dependencies, reduce_operand).invoke()
+        return interoperable_reduce(lambda x, y: x & Functor(y), node.dependencies, reduce_operand).invoke()
 
     @staticmethod
     def dependency_appears_in_temp_graph(dependency, node, temp_graph):

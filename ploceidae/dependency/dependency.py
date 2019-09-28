@@ -5,17 +5,23 @@ from ploceidae.constants import BINDINGS
 from ploceidae.dependency_graph_manager  import DependencyGraphManager
 from ploceidae.dependency.dependency_helper_methods import DependencyHelperMethods
 from ploceidae.dependency.dependency_locator import DependencyLocator
+from ploceidae.dependency.garbage_collection.garbage_collection_observer import GarbageCollectionObserver
+from ploceidae.dependency_graph_manager.dependency_graph import DependencyGraph
 
 logger = logging.getLogger(__name__)
 
 class Dependency(DependencyLocator, DependencyHelperMethods):
     """decorator is a class object because that will make it easier to hook into later"""
 
+    GARBAGE_COLLECTION_OBSERVER = GarbageCollectionObserver.get_instance()
+    DEPENDENCY_GRAPH_MANAGER = DependencyGraphManager(DependencyGraph())
+
     def __init__(self, **kwargs):
         """
         :param kwargs: scope determines how the dependency is delivered (if we cache it or not), allows for grouping dependencies,
         global_dependency determines the visibility of dependency (True means dependency is visible independent of its module position)
         """
+        # super does get called... in this method
         self.input_validation_to_init(kwargs)
         self.scope = kwargs.get("scope", "function")
         self.group = kwargs.get("group")
@@ -36,13 +42,13 @@ class Dependency(DependencyLocator, DependencyHelperMethods):
         self.dependencies = dependencies
         try:
             logger.info("adding dependency to dependency graph")
-            DependencyGraphManager.add_dependency(self, self.global_dependency)
+            self.DEPENDENCY_GRAPH_MANAGER.add_dependency(self, self.global_dependency)
         except ValueError as ex:
             logger.error("problem with adding dependency to dependency graph: {}".format(ex))
         return dependency_obj
 
     def init_dependency_inner(self, callable_obj):
-        super(Dependency, self).__init__(self.scope, callable_obj)
+        super(Dependency, self).__init__(self.GARBAGE_COLLECTION_OBSERVER, self.scope, callable_obj)
         self.dependencies = self.get_dependencies_from_callable_obj(callable_obj, *BINDINGS)
         self.dependency_name = callable_obj.__name__
 
