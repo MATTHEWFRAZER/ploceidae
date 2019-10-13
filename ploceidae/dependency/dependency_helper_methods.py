@@ -7,27 +7,27 @@ class DependencyHelperMethods(object):
     VALID_KWARGS = ("scope", "group", "global_dependency")
 
     @classmethod
-    def input_validation_for_dependency_obj(cls, decorated_obj):
-        cls.decorated_obj_is_callable(decorated_obj)
-        cls.decorated_obj_has_name_attribute(decorated_obj)
-        cls.decorated_obj_does_not_depend_on_itself(decorated_obj)
+    def input_validation_for_dependency_object(cls, decorated_object):
+        cls.decorated_object_is_callable(decorated_object)
+        cls.decorated_object_has_name_attribute(decorated_object)
+        cls.decorated_object_does_not_depend_on_itself(decorated_object)
 
     @classmethod
-    def decorated_obj_is_callable(cls, decorated_obj):
-        if not callable(decorated_obj):
+    def decorated_object_is_callable(cls, decorated_object):
+        if not callable(decorated_object):
             raise ValueError("Can not decorate non callables")
 
     @classmethod
-    def decorated_obj_has_name_attribute(cls, decorated_obj):
+    def decorated_object_has_name_attribute(cls, decorated_object):
         try:
-            decorated_obj.__name__
+            decorated_object.__name__
         except AttributeError:
             raise ValueError("dependency must have __name__ attribute")
 
     @classmethod
-    def decorated_obj_does_not_depend_on_itself(cls, decorated_obj):
-        if decorated_obj.__name__ in DependencyResolutionMethods.get_dependencies(decorated_obj):
-            raise ValueError("{0} is a dependency on itself".format(decorated_obj.__name__))
+    def decorated_object_does_not_depend_on_itself(cls, decorated_object):
+        if decorated_object.__name__ in DependencyResolutionMethods.get_dependencies(decorated_object):
+            raise ValueError("{0} is a dependency on itself".format(decorated_object.__name__))
 
     @classmethod
     def input_validation_to_init(cls, kwargs):
@@ -44,6 +44,6 @@ class DependencyHelperMethods(object):
         return key in cls.VALID_KWARGS
 
     @staticmethod
-    def get_dependencies_from_callable_obj(dependency_objects, *dependencies_to_ignore):
+    def get_dependencies_from_callable_object(dependency_objects, *dependencies_to_ignore):
         return [dependency_name for dependency_name in DependencyResolutionMethods.get_dependencies(dependency_objects) if dependency_name not in dependencies_to_ignore + BINDINGS]
 

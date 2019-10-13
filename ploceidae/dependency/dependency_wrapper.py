@@ -32,10 +32,10 @@ class DependencyWrapper(DependencyLocator, DependencyHelperMethods):
         # we should put this algorithm somne place else, question do we want the end caller to be in the dependency graph
         # do I need to do classmethod check here? Maybe because the class method itself (unbounded will not be callable). If a user does class
         # introspection and decides to decorate a classmethod accessed via __dict__ yeah
-        self.input_validation_for_dependency_obj(dependency_object)
+        self.input_validation_for_dependency_object(dependency_object)
 
         # get dependencies before because we need to keep the dependencies for the callable object
-        dependencies = self.get_dependencies_from_callable_obj(dependency_object, *BINDINGS)
+        dependencies = self.get_dependencies_from_callable_object(dependency_object, *BINDINGS)
         logger.info("register callbacks to invoke after")
         dependency_object = self.invoke_callbacks_after(dependency_object)
         self.init_dependency_inner(dependency_object)
@@ -49,7 +49,7 @@ class DependencyWrapper(DependencyLocator, DependencyHelperMethods):
 
     def init_dependency_inner(self, dependency_object):
         super(DependencyWrapper, self).__init__(self.GARBAGE_COLLECTION_OBSERVER, self.scope, dependency_object)
-        self.dependencies = self.get_dependencies_from_callable_obj(dependency_object, *BINDINGS)
+        self.dependencies = self.get_dependencies_from_callable_object(dependency_object, *BINDINGS)
         self.dependency_name = dependency_object.__name__
 
     def invoke_callbacks_after(self, func):
@@ -61,9 +61,9 @@ class DependencyWrapper(DependencyLocator, DependencyHelperMethods):
         return nested
 
     @classmethod
-    def get_dependency_without_decoration(cls, dependency_obj, global_dependency=None):
+    def get_dependency_without_decoration(cls, dependency_object, global_dependency=None):
         dependency = cls(global_dependency=global_dependency)
-        dependency.init_dependency_inner(dependency_obj)
+        dependency.init_dependency_inner(dependency_object)
         return dependency
 
     @classmethod
