@@ -132,7 +132,7 @@ class TestDependencyGraphManager(object):
 
     @staticmethod
     def scope_key_init(obj, scope, time_stamp):
-        scope_key_obj = ScopeKey(obj)
-        scope_key_obj.init_scope(scope)
-        scope_key_obj.init_alt_key(time_stamp)
-        return scope_key_obj
+        scope_key = ScopeKey(obj)
+        scope_key.init_scope(scope)
+        scope_key.init_alt_key(time_stamp)
+        return scope_key
