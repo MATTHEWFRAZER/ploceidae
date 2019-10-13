@@ -48,7 +48,7 @@ class TestScopeManagement:
         default_container.wire_dependencies(x.x)
 
         cache_item = CacheItem(a, a.__name__)
-        cache_item.module = GLOBAL_NAMESPACE
+        cache_item.dependency_module = GLOBAL_NAMESPACE
 
         if cache_item not in dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER.dependency_graph:
            raise Exception("dependency a was never inserted into dependency graph")
