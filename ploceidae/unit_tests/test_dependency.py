@@ -21,11 +21,11 @@ class TestDependency:
 
         cache_item = CacheItem(a, a.__name__)
         if global_bool1 == global_bool2:
-            cache_item.module = GLOBAL_NAMESPACE if global_bool1 else cache_item.module
+            cache_item.dependency_module = GLOBAL_NAMESPACE if global_bool1 else cache_item.dependency_module
             assert dependency_graph[cache_item] is not a
         else:
             assert cache_item in dependency_graph
-            cache_item.module = GLOBAL_NAMESPACE
+            cache_item.dependency_module = GLOBAL_NAMESPACE
             assert  cache_item in dependency_graph
 
 
@@ -40,7 +40,7 @@ class TestDependency:
 
     def test_dependency_decorator_has_correct_module(self, dependency_decorator, separate_decorator):
         decorated = dependency_decorator(separate_decorator)
-        assert CacheItem(decorated, None).module == "ploceidae.unit_tests.conftest"
+        assert CacheItem(decorated, None).dependency_module == "ploceidae.unit_tests.conftest"
 
     def test_dependency_application_with_runtime_syntax(self, dependency_decorator):
         application_callback = lambda: dependency_decorator(lambda: None)

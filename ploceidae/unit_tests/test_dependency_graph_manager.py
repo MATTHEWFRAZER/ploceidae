@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from ploceidae.dependency import Dependency
+from ploceidae.dependency import DependencyWrapper
 from ploceidae.scope_binding.scope_key import ScopeEnum
 from ploceidae.scope_binding.scope_key import ScopeKey
 from ploceidae.dependency_graph_manager.cache_item import CacheItem
@@ -22,8 +22,8 @@ class TestDependencyGraphManager(object):
         def a(b): pass
         def b(a): pass
 
-        a = Dependency.get_dependency_without_decoration(a)
-        b = Dependency.get_dependency_without_decoration(b)
+        a = DependencyWrapper.get_dependency_without_decoration(a)
+        b = DependencyWrapper.get_dependency_without_decoration(b)
 
         self.add_dependencies(default_dependency_graph_manager, a, b)
         assert not default_dependency_graph_manager.dependency_graph_is_acyclic(default_dependency_graph_manager.dependency_graph)
@@ -35,7 +35,7 @@ class TestDependencyGraphManager(object):
         dependencies_not_in_graph = []
         for dependency in dependency_graph:
             cache_item = CacheItem(dependency, dependency.dependency_name)
-            cache_item.module = GLOBAL_NAMESPACE
+            cache_item.dependency_module = GLOBAL_NAMESPACE
             if cache_item not in default_dependency_graph_manager.dependency_graph:
                 dependencies_not_in_graph.append(dependency)
         assert not dependencies_not_in_graph
@@ -62,7 +62,7 @@ class TestDependencyGraphManager(object):
         assert default_dependency_graph_manager.node_has_no_in_edges(dependency_graph_node_with_no_in_edges, mocked_graph)
 
     def test_add_depenendency_with_callable(self, default_dependency_graph_manager):
-        l = Dependency.get_dependency_without_decoration(lambda _:_)
+        l = DependencyWrapper.get_dependency_without_decoration(lambda _:_)
         default_dependency_graph_manager.add_dependency(l, global_dependency=True)
         assert len(default_dependency_graph_manager.dependency_graph) == 1
 
@@ -71,28 +71,28 @@ class TestDependencyGraphManager(object):
         def a(): pass
 
         b = a
-        a = Dependency.get_dependency_without_decoration(a)
-        b = Dependency.get_dependency_without_decoration(b)
+        a = DependencyWrapper.get_dependency_without_decoration(a)
+        b = DependencyWrapper.get_dependency_without_decoration(b)
         self.add_dependencies(default_dependency_graph_manager, a, b)
 
     # do we want to test this behavior?
     def test_resolve_dependencies_after_adding_dependency(self, dependency_graph, default_dependency_graph_manager):
-        scope_key_obj = self.scope_key_init(dependency_graph[-1], ScopeEnum.FUNCTION, datetime.now())
-        scope_key_obj2 = self.scope_key_init(dependency_graph[-2], ScopeEnum.FUNCTION, datetime.now())
-        assert not default_dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key_obj).all_resolved_dependencies
+        scope_key_object = self.scope_key_init(dependency_graph[-1], ScopeEnum.FUNCTION, datetime.now())
+        scope_key_object2 = self.scope_key_init(dependency_graph[-2], ScopeEnum.FUNCTION, datetime.now())
+        assert not default_dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key_object).all_resolved_dependencies
         default_dependency_graph_manager.add_dependency(dependency_graph[-1], global_dependency=True)
-        assert default_dependency_graph_manager.resolve_dependencies(dependency_graph[-2], scope_key_obj2).resolved_dependencies[0] == dependency_graph[-1].dependency_obj.__name__
+        assert default_dependency_graph_manager.resolve_dependencies(dependency_graph[-2], scope_key_object2).resolved_dependencies[0] == dependency_graph[-1].dependency_object.__name__
 
     def test_resolve_dependencies_with_dependent_that_has_no_dependencies(self, dependency_graph, default_dependency_graph_manager):
-        scope_key_obj = self.scope_key_init(dependency_graph[-1], ScopeEnum.FUNCTION, datetime.now())
-        assert not default_dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key_obj).all_resolved_dependencies
+        scope_key_object = self.scope_key_init(dependency_graph[-1], ScopeEnum.FUNCTION, datetime.now())
+        assert not default_dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key_object).all_resolved_dependencies
 
     def test_resolve_dependencies(self, default_dependency_graph_manager, dependency_graph):
-        scope_key_obj = self.scope_key_init(dependency_graph[0].dependency_obj, ScopeEnum.FUNCTION, datetime.now())
+        scope_key_object = self.scope_key_init(dependency_graph[0].dependency_object, ScopeEnum.FUNCTION, datetime.now())
         try:
             self.add_dependencies(default_dependency_graph_manager, *dependency_graph)
-            dependencies = default_dependency_graph_manager.resolve_dependencies(dependency_graph[0], scope_key_obj)
-            dependency_graph[0].dependency_obj(*dependencies.all_resolved_dependencies)
+            dependencies = default_dependency_graph_manager.resolve_dependencies(dependency_graph[0], scope_key_object)
+            dependency_graph[0].dependency_object(*dependencies.all_resolved_dependencies)
         except ValueError as ex:
             pytest.fail("dependency resolution failed:{0}".format(ex))
 
@@ -102,7 +102,7 @@ class TestDependencyGraphManager(object):
         # after something declares it in its argument list
         def a(b): pass
 
-        default_dependency_graph_manager.add_dependency(Dependency.get_dependency_without_decoration(a), global_dependency=True)
+        default_dependency_graph_manager.add_dependency(DependencyWrapper.get_dependency_without_decoration(a), global_dependency=True)
         default_dependency_graph_manager.resolve_dependencies(a, ScopeKey(a))
 
     @pytest.mark.xfail(raises=BaseException)
@@ -114,8 +114,8 @@ class TestDependencyGraphManager(object):
 
         def test(x): pass
 
-        default_dependency_graph_manager.add_dependency(Dependency.get_dependency_without_decoration(x), global_dependency=True)
-        default_dependency_graph_manager.add_dependency(Dependency.get_dependency_without_decoration(y), global_dependency=True)
+        default_dependency_graph_manager.add_dependency(DependencyWrapper.get_dependency_without_decoration(x), global_dependency=True)
+        default_dependency_graph_manager.add_dependency(DependencyWrapper.get_dependency_without_decoration(y), global_dependency=True)
         default_dependency_graph_manager.resolve_dependencies(test, ScopeKey(test))
 
     @classmethod

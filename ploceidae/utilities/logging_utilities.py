@@ -1,7 +1,7 @@
 import logging
 from os import makedirs, path
 
-def configure_pygmy_logging(log_level):
+def configure_logging(log_level):
     artifacts = "artifacts"
     if not path.exists(artifacts):
         makedirs(artifacts)
@@ -10,10 +10,10 @@ def configure_pygmy_logging(log_level):
                         datefmt='%m-%d %H:%M',
                         filename=path.join(artifacts, "ploceidae.log"),
                         filemode='w')
-    logging.getLogger('').addFilter(PygmyFilter())
+    logging.getLogger('').addFilter(Filter())
 
-class PygmyFilter(logging.Filter):
+class Filter(logging.Filter):
 
     def filter(self, record):
         print(record.pathname)
-        return not record.pathname.startswith("ploceidae.")
+        return record.pathname.startswith("ploceidae.")

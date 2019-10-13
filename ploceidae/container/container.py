@@ -2,9 +2,11 @@ from datetime import datetime
 import logging
 from pprint import pformat
 
-from ploceidae.dependency import Dependency
+from ploceidae.dependency import DependencyWrapper
 from ploceidae.dependency.dependency_helper_methods import DependencyHelperMethods
 from ploceidae.container.partial_injection import PartialInjection
+from ploceidae.dependency_graph_manager.dependency_graph_manager import DependencyGraphManager
+from ploceidae.dependency_graph_manager.dependency_graph import DependencyGraph
 
 logger = logging.getLogger(__name__)
 
@@ -13,18 +15,18 @@ __all__ = ["Container"]
 
 class Container(object):
 
-    def __init__(self, dependency_graph_manager):
+    def __init__(self, dependency_graph_manager=None):
         self.dependency_graph_manager = dependency_graph_manager
 
-    def wire_dependencies(self, obj_to_wire_up, *dependencies_to_ignore):
-        return self.partial_wire_dependencies(obj_to_wire_up, *dependencies_to_ignore)()
+    def wire_dependencies(self, object_to_wire_up, *dependencies_to_ignore):
+        return self.partial_wire_dependencies(object_to_wire_up, *dependencies_to_ignore)()
 
-    def partial_wire_dependencies(self, obj_to_wire_up, *dependencies_to_ignore):
-        DependencyHelperMethods.input_validation_for_dependency_obj(obj_to_wire_up)
+    def partial_wire_dependencies(self, object_to_wire_up, *dependencies_to_ignore):
+        DependencyHelperMethods.input_validation_for_dependency_obj(object_to_wire_up)
 
-        dependency_obj = Dependency.get_dependency_without_decoration(obj_to_wire_up)
+        dependency_obj = DependencyWrapper.get_dependency_without_decoration(object_to_wire_up)
 
-        return self.partial_wire_dependencies_inner(dependency_obj, dependencies_to_ignore, obj_to_wire_up)
+        return self.partial_wire_dependencies_inner(dependency_obj, dependencies_to_ignore, object_to_wire_up)
 
     def partial_wire_dependencies_inner(self, dependency_obj, dependencies_to_ignore, obj_to_wire_up):
         time_stamp = datetime.now()
@@ -46,6 +48,10 @@ class Container(object):
             self.dependency_graph_manager.replace_alt_keys_with_valid_scope_from_instance(ret, object_to_wire_up, time_stamp)
             return ret
         return when_called
+
+    @classmethod
+    def get_basic_container(cls):
+        return cls(DependencyGraphManager(DependencyGraph()))
 
     @staticmethod
     def log_partial_injection_data(dependency_name, dependencies_to_ignore, args_to_apply_as_dict, args_to_apply_as_group):

@@ -5,8 +5,8 @@ import six
 from ploceidae.scope_binding.scope_enum import ScopeEnum
 
 class ScopeKey(object):
-    def __init__(self, obj):
-        self.obj = obj
+    def __init__(self, dependency_object):
+        self.dependency_object = dependency_object
         self.alt_key = None
 
     def init_scope(self, scope):
@@ -14,13 +14,13 @@ class ScopeKey(object):
         self.scope = scope
 
     def init_alt_key(self, time_stamp):
-        self.alt_key_format = "alt::" + "{}::" + str(self.obj) + "::" + str(time_stamp)
+        self.alt_key_format = "alt::" + "{}::" + str(self.dependency_object) + "::" + str(time_stamp)
 
     def __repr__(self):
         if self.scope == ScopeEnum.SESSION:
             return "session"
         elif self.scope == ScopeEnum.MODULE:
-            return "{0}".format(getsourcefile(self.obj))
+            return "{0}".format(getsourcefile(self.dependency_object))
         elif self.scope == ScopeEnum.CLASS:
             return self.handle_class_scope()
         elif self.scope == ScopeEnum.INSTANCE:
@@ -32,28 +32,28 @@ class ScopeKey(object):
 
     def handle_class_scope(self):
         try:
-            return "{0}".format(self.obj.__self__.__class__)
-        except AttributeError: # TODO PYGMY 11: if obj is for some reason not bound correctly (i.e. dynamically set method like a lambda)
-            raise ValueError("{0} does not have a __self__.__class__ reference to resolve class scope for".format(self.obj))
+            return "{0}".format(self.dependency_object.__self__.__class__)
+        except AttributeError: # TODO PLOCEIDAE 11: if dependency_object is for some reason not bound correctly (i.e. dynamically set method like a lambda)
+            raise ValueError("{0} does not have a __self__.__class__ reference to resolve class scope for".format(self.dependency_object))
 
     def handle_instance_scope(self):
-        if isinstance(self.obj, six.class_types):
+        if isinstance(self.dependency_object, six.class_types):
             return self.alt_key_format.format(self.scope)
-        if hasattr(self.obj, "__name__") and self.obj.__name__ == "__init__":
+        if hasattr(self.dependency_object, "__name__") and self.dependency_object.__name__ == "__init__":
             return self.alt_key_format.format(self.scope)
-        if hasattr(self.obj, "__self__"):
-            return "{0}".format(self.obj.__self__)
-        return "{0}".format(self.obj)
+        if hasattr(self.dependency_object, "__self__"):
+            return "{0}".format(self.dependency_object.__self__)
+        return "{0}".format(self.dependency_object)
 
     def handle_function_scope(self):
         try:
-            instance_binding = self.obj.__self__
+            instance_binding = self.dependency_object.__self__
         except AttributeError:
             instance_binding = "null"
         try:
-            used_name = self.obj.__qualname__
+            used_name = self.dependency_object.__qualname__
         except:
-            used_name = str(self.obj)
+            used_name = str(self.dependency_object)
         return "{0}::{1}".format(instance_binding, used_name)
 
     @staticmethod

@@ -1,7 +1,7 @@
 from pprint import pformat
 
 from ploceidae.constants import BINDINGS
-from ploceidae.utilities.lib import get_dependencies
+from ploceidae.dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
 
 class DependencyHelperMethods(object):
     VALID_KWARGS = ("scope", "group", "global_dependency")
@@ -26,7 +26,7 @@ class DependencyHelperMethods(object):
 
     @classmethod
     def decorated_obj_does_not_depend_on_itself(cls, decorated_obj):
-        if decorated_obj.__name__ in get_dependencies(decorated_obj):
+        if decorated_obj.__name__ in DependencyResolutionMethods.get_dependencies(decorated_obj):
             raise ValueError("{0} is a dependency on itself".format(decorated_obj.__name__))
 
     @classmethod
@@ -44,6 +44,6 @@ class DependencyHelperMethods(object):
         return key in cls.VALID_KWARGS
 
     @staticmethod
-    def get_dependencies_from_callable_obj(callable_obj, *dependencies_to_ignore):
-        return [dependency for dependency in get_dependencies(callable_obj) if dependency not in dependencies_to_ignore + BINDINGS]
+    def get_dependencies_from_callable_obj(dependency_objects, *dependencies_to_ignore):
+        return [dependency_name for dependency_name in DependencyResolutionMethods.get_dependencies(dependency_objects) if dependency_name not in dependencies_to_ignore + BINDINGS]
 

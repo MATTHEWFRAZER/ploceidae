@@ -1,4 +1,5 @@
 import logging
+from inspect import getargspec
 from pprint import pformat
 
 from ploceidae.scope_binding.scope_key import ScopeKey
@@ -14,14 +15,14 @@ class DependencyResolutionMethods(object):
         dependency_retrieval_method = lambda: [name for name, dependency in self.dependency_graph.items() if dependency.group == group]
         return self.dependency_resolution_algorithm(dependency_obj, dependency_retrieval_method, time_stamp)
 
-    def resolve_dependencies_inner(self, dependency_obj, time_stamp, *dependencies_to_ignore):
+    def resolve_dependencies_inner(self, dependency_wrapper, time_stamp, *dependencies_to_ignore):
         logger.info("resolving dependencies")
-        dependency_retrieval_method = lambda: filter(lambda dependency: dependency not in dependencies_to_ignore, dependency_obj.dependencies)
-        return self.dependency_resolution_algorithm(dependency_obj, dependency_retrieval_method, time_stamp)
+        dependency_retrieval_method = lambda: filter(lambda dependency: dependency not in dependencies_to_ignore, dependency_wrapper.dependencies)
+        return self.dependency_resolution_algorithm(dependency_wrapper, dependency_retrieval_method, time_stamp)
 
-    def dependency_resolution_algorithm(self, dependency_obj, dependency_retrieval_method, time_stamp):
+    def dependency_resolution_algorithm(self, dependency_wrapper, dependency_retrieval_method, time_stamp):
         logger.info("general resolution algorithm start")
-        scope_key = ScopeKey(dependency_obj.dependency_obj)
+        scope_key = ScopeKey(dependency_wrapper.dependency_object)
         scope_key.init_alt_key(time_stamp)
         with self.lock:
             dependencies = dependency_retrieval_method()
@@ -48,13 +49,13 @@ class DependencyResolutionMethods(object):
 
     def resolve_dependency_to_dependency_graph(self, scope_key, resolved_graph, dependency_stack):
         dependencies = dependency_stack.pop()
-        for dependency in dependencies:
-            dep_obj = self.find_dependency_obj(dependency, scope_key)
-            if dep_obj is None:
+        for dependency_name in dependencies:
+            dependency_wrapper = self.find_dependency_obj(dependency_name, scope_key)
+            if dependency_wrapper is None:
                 # we can't validate dependencies before actual dependency resolution, because we might add a dependency
                 # after something declares it in its argument list
-                raise BaseException("{0} doesn't exist".format(dependency))
-            cache_item = CacheItem(dep_obj.dependency_obj, dep_obj.dependency_name)
+                raise BaseException("{0} doesn't exist".format(dependency_name))
+            cache_item = CacheItem(dependency_wrapper.dependency_object, dependency_wrapper.dependency_name)
             # if there is no need to resolve arguments
             if not self.dependency_graph[cache_item].dependencies:
                 logger.debug("dependency object {0} was resolved with no arguments".format(cache_item.dependency_name))
@@ -76,29 +77,49 @@ class DependencyResolutionMethods(object):
             dependency_stack.append([dependency_obj_inner.dependency_name])
             dependency_stack.append(dependency_obj_inner.dependencies)
 
-    def find_dependency_obj(self, dependency, scope_key):
-        result = self.resolve_dependency_obj_by_module(dependency, scope_key)
-        return result if result is not None else self.resolve_dependency_obj_in_dependency_graph(dependency)
+    def find_dependency_obj(self, dependency_name, scope_key):
+        dependency_wrapper = self.resolve_dependency_obj_by_module(dependency_name, scope_key)
+        return dependency_wrapper if dependency_wrapper is not None else self.resolve_dependency_obj_in_dependency_graph(dependency_name)
 
-    def resolve_dependency_obj_by_module(self, dependency, scope_key):
-        for value in self.dependency_graph.values():
-            if ModuleNameHelper.get_module_name(value.dependency_obj) == ModuleNameHelper.get_module_name(scope_key.obj) and value.dependency_name == dependency:
-                logger.debug("found dependency object with module match {0}".format(value.dependency_name))
-                return value
+    def resolve_dependency_obj_by_module(self, dependency_name, scope_key):
+        for dependency_wrapper in self.dependency_graph.values():
+            if self.is_dependency_found_by_module(dependency_wrapper, dependency_name, scope_key):
+                logger.debug("found dependency_name object with module match {0}".format(dependency_wrapper.dependency_name))
+                return dependency_wrapper
 
-    def resolve_dependency_obj_in_dependency_graph(self, dependency):
-        for dependency_obj in self.dependency_graph.values():
-            if dependency_obj.dependency_name == dependency:
-                logger.debug("found dependency object {0}".format(dependency_obj.dependency_name))
-                return dependency_obj
+    def resolve_dependency_obj_in_dependency_graph(self, dependency_name):
+        for dependency_wrapper in self.dependency_graph.values():
+            if dependency_wrapper.dependency_name == dependency_name:
+                logger.debug("found dependency_name object {0}".format(dependency_wrapper.dependency_name))
+                return dependency_wrapper
+
+    @staticmethod
+    def is_dependency_found_by_module(dependency_wrapper, dependency_name, scope_key):
+        return ModuleNameHelper.get_module_name(dependency_wrapper.dependency_object) == ModuleNameHelper.get_module_name(
+            scope_key.dependency_object) and dependency_wrapper.dependency_name == dependency_name
 
     @staticmethod
     def resolve_arguments_to_dependencies(dependencies, resolved_graph):
         resolved_arguments = []
-        for dependency in dependencies:
+        for dependency_name in dependencies:
             try:
-                resolved_arguments.append(resolved_graph[dependency])
+                resolved_arguments.append(resolved_graph[dependency_name])
             except:
                 return []
         logger.debug("resolving dependencies as arguments to dependency object {0}".format(dependencies))
         return resolved_arguments
+
+    @classmethod
+    def get_dependencies(cls, dependency_object):
+        return cls.safe_get_argspec(dependency_object)[0]
+
+    @classmethod
+    def get_group(cls, dependency_object):
+        return cls.safe_get_argspec(dependency_object)[1]
+
+    @staticmethod
+    def safe_get_argspec(dependency_object):
+        try:
+            return getargspec(dependency_object)
+        except TypeError:
+            return getargspec(dependency_object.__init__)

@@ -1,5 +1,5 @@
-from ploceidae.dependency.dependency import Dependency
+from ploceidae.dependency.dependency_wrapper import DependencyWrapper
 
-__all__ = ["dependency", "Dependency"]
+__all__ = ["dependency", "DependencyWrapper"]
 
-dependency = Dependency.control_initialization
+dependency = DependencyWrapper.control_initialization
