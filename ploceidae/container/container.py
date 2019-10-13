@@ -22,24 +22,24 @@ class Container(object):
         return self.partial_wire_dependencies(object_to_wire_up, *dependencies_to_ignore)()
 
     def partial_wire_dependencies(self, object_to_wire_up, *dependencies_to_ignore):
-        DependencyHelperMethods.input_validation_for_dependency_obj(object_to_wire_up)
+        DependencyHelperMethods.input_validation_for_dependency_object(object_to_wire_up)
 
-        dependency_obj = DependencyWrapper.get_dependency_without_decoration(object_to_wire_up)
+        dependency_object = DependencyWrapper.get_dependency_without_decoration(object_to_wire_up)
 
-        return self.partial_wire_dependencies_inner(dependency_obj, dependencies_to_ignore, object_to_wire_up)
+        return self.partial_wire_dependencies_inner(dependency_object, dependencies_to_ignore, object_to_wire_up)
 
-    def partial_wire_dependencies_inner(self, dependency_obj, dependencies_to_ignore, obj_to_wire_up):
+    def partial_wire_dependencies_inner(self, dependency_object, dependencies_to_ignore, object_to_wire_up):
         time_stamp = datetime.now()
-        resolved_dependencies = self.dependency_graph_manager.resolve_dependencies(dependency_obj, time_stamp,
-                                                                            *dependencies_to_ignore)
-        args_to_apply_as_dict = self.get_args_to_apply_as_dict(dependency_obj.dependencies, dependencies_to_ignore,
-                                                              resolved_dependencies)
+        resolved_dependencies = self.dependency_graph_manager.resolve_dependencies(dependency_object, time_stamp,
+                                                                                   *dependencies_to_ignore)
+        args_to_apply_as_dict = self.get_args_to_apply_as_dict(dependency_object.dependencies, dependencies_to_ignore,
+                                                               resolved_dependencies)
         args_to_apply_as_group = resolved_dependencies.resolved_dependencies_by_group
 
-        self.log_partial_injection_data(dependency_obj.dependency_name, dependencies_to_ignore, args_to_apply_as_dict, args_to_apply_as_group)
-        partial_injection = PartialInjection(obj_to_wire_up, dependencies_to_ignore, *args_to_apply_as_group,
+        self.log_partial_injection_data(dependency_object.dependency_name, dependencies_to_ignore, args_to_apply_as_dict, args_to_apply_as_group)
+        partial_injection = PartialInjection(object_to_wire_up, dependencies_to_ignore, *args_to_apply_as_group,
                                              **args_to_apply_as_dict)
-        return self.decorate_partial_injection(partial_injection, obj_to_wire_up, time_stamp)
+        return self.decorate_partial_injection(partial_injection, object_to_wire_up, time_stamp)
 
     def decorate_partial_injection(self, partial_injection, object_to_wire_up, time_stamp):
         def when_called(*args, **kwargs):

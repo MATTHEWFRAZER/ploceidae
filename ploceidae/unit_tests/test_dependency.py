@@ -51,17 +51,17 @@ class TestDependency:
         self.dependency_application("decorator", application_callback)
 
     @pytest.mark.xfail(raises=ValueError)
-    def test_dependency_application_to_obj_that_depends_on_itself(self, dependency_decorator):
+    def test_dependency_application_to_object_that_depends_on_itself(self, dependency_decorator):
         @dependency_decorator
         def a(a): pass
 
     @pytest.mark.xfail(raises=ValueError)
-    def test_dependency_application_to_obj_that_is_missing_name_attribute(self, dependency_decorator):
+    def test_dependency_application_to_object_that_is_missing_name_attribute(self, dependency_decorator):
         # assumes partial object will not have __name__ attribute
         dependency_decorator(partial(lambda: None))
 
     @pytest.mark.xfail(raises=ValueError)
-    def test_dependency_application_to_obj_that_is_not_callable(self, dependency_decorator):
+    def test_dependency_application_to_object_that_is_not_callable(self, dependency_decorator):
         dependency_decorator("invalid")
 
     def test_dependency_application_with_decorator_syntax_with_a_second_decorator(self, dependency_decorator, separate_decorator):
