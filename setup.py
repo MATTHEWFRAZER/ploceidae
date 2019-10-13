@@ -1,7 +1,7 @@
 from os import path
 from setuptools import setup, find_packages
 
-with open(path.join("ploceidae", "requirements.txt")) as req:
+with open("requirements.txt") as req:
     # handles custom package repos
     requirements = [requirement for requirement in req.read().splitlines() if not requirement.startswith("-")]
 
