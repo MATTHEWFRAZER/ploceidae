@@ -1,1 +1,1 @@
-__all__ = ["container"]
+__all__ = ["container", "dependency"]
