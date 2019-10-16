@@ -4,6 +4,8 @@ from ploceidae.dependency_graph_manager.dependency_graph_cycle_check_methods imp
 from ploceidae.dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
 from ploceidae.dependency_graph_manager.cache_item import CacheItem
 from ploceidae.dependency_graph_manager.resolved_dependencies import ResolvedDependencies
+from ploceidae.utilities.visibility_enum import VisibilityEnum
+
 
 class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolutionMethods):
 
@@ -11,8 +13,8 @@ class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolut
         self.dependency_graph = dependency_graph
         self.lock = Lock()
 
-    def add_dependency(self, dependency_wrapper, global_dependency=None):
-        cache_item = CacheItem.cache_item_factory_method(dependency_wrapper, global_dependency)
+    def add_dependency(self, dependency_wrapper, visibility=VisibilityEnum.Module):
+        cache_item = CacheItem.cache_item_factory_method(dependency_wrapper, visibility)
         with self.lock:
             if cache_item in self.dependency_graph:
                 raise ValueError("dependency with name {0} already exists in dependency graph".format(dependency_wrapper.dependency_name))
@@ -21,7 +23,7 @@ class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolut
                 raise ValueError("dependency makes graph cyclic")
 
     def resolve_dependencies(self, dependency_wrapper, time_stamp, *dependencies_to_ignore):
-        # need to be able to use the other default scopes
+        # need to be able to use the other default dependency lifetimes
         resolved_dependencies = self.resolve_dependencies_inner(dependency_wrapper, time_stamp, *dependencies_to_ignore)
         # if we have kwargs, we have a group by name of argument representing kwargs
         group = self.get_group(dependency_wrapper.dependency_object)
@@ -29,4 +31,3 @@ class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolut
         if group:
             resolved_dependencies_by_group = self.resolve_dependencies_by_group(dependency_wrapper, group, time_stamp)
         return ResolvedDependencies(resolved_dependencies + resolved_dependencies_by_group, resolved_dependencies, resolved_dependencies_by_group)
-

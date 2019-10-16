@@ -1,5 +1,6 @@
 from ploceidae.constants import GLOBAL_NAMESPACE
 from ploceidae.utilities.module_name_helper import ModuleNameHelper
+from ploceidae.utilities.visibility_enum import VisibilityEnum
 
 __all__ = ["CacheItem"]
 
@@ -14,9 +15,9 @@ class CacheItem(object):
         self.dependency_name   = dependency_name
 
     @classmethod
-    def cache_item_factory_method(cls, dependency_wrapper, global_dependency):
+    def cache_item_factory_method(cls, dependency_wrapper, visibility):
         cache_item = cls(dependency_wrapper.dependency_object, dependency_wrapper.dependency_name)
-        if global_dependency:
+        if visibility == VisibilityEnum.GLOBAL:
             cache_item.dependency_module = GLOBAL_NAMESPACE
 
         return cache_item

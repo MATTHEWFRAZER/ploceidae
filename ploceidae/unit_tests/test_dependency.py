@@ -5,23 +5,25 @@ import pytest
 
 from ploceidae.dependency_graph_manager.cache_item import CacheItem
 from ploceidae.constants import GLOBAL_NAMESPACE
+from ploceidae.utilities.visibility_enum import VisibilityEnum
+
 
 class TestDependency:
 
-    @pytest.mark.parametrize("global_bool1,global_bool2", product([True, False], repeat=2))
-    def test_duplicate_dependency_name_with_different_dependency_resolution_scheme(self, global_bool1, global_bool2, dependency_decorator):
-        @dependency_decorator(global_dependency=global_bool1)
+    @pytest.mark.parametrize("global_visibility,global_visibility2", product([VisibilityEnum.GLOBAL, VisibilityEnum.Module], repeat=2))
+    def test_duplicate_dependency_name_with_different_dependency_resolution_scheme(self, global_visibility, global_visibility2, dependency_decorator):
+        @dependency_decorator(visibility=global_visibility)
         def a(): pass
 
-        @dependency_decorator(global_dependency=global_bool2)
+        @dependency_decorator(visibility=global_visibility2)
         def a(): pass
 
         # TODO: HACK ALERT
         dependency_graph = dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER.dependency_graph
 
         cache_item = CacheItem(a, a.__name__)
-        if global_bool1 == global_bool2:
-            cache_item.dependency_module = GLOBAL_NAMESPACE if global_bool1 else cache_item.dependency_module
+        if global_visibility == global_visibility2:
+            cache_item.dependency_module = GLOBAL_NAMESPACE if global_visibility else cache_item.dependency_module
             assert dependency_graph[cache_item] is not a
         else:
             assert cache_item in dependency_graph
@@ -141,7 +143,7 @@ class TestDependency:
                 return func(b)
             return nested
 
-        @dependency_decorator(global_dependency=True)
+        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
         def b():
             return "b"
 
@@ -166,9 +168,9 @@ class TestDependency:
         container.wire_dependencies(a)
 
 
-    def test_dependency_application_with_scope_passed_as_argument(self, dependency_decorator):
+    def test_dependency_application_with_dependency_lifetime_passed_as_argument(self, dependency_decorator):
         try:
-            @dependency_decorator(scope="function")
+            @dependency_decorator(lifetime="function")
             def a(): pass
         except Exception as ex:
             pytest.fail("could not decorate function. Ex: {0}".format(ex))

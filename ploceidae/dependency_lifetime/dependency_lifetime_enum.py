@@ -1,4 +1,4 @@
-class ScopeEnum(object):
+class DependencyLifetimeEnum:
     SESSION  = "session"
     MODULE   = "module"
     CLASS    = "class"
