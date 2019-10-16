@@ -30,4 +30,3 @@ class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolut
             resolved_dependencies_by_group = self.resolve_dependencies_by_group(dependency_wrapper, group, time_stamp)
         return ResolvedDependencies(resolved_dependencies + resolved_dependencies_by_group, resolved_dependencies, resolved_dependencies_by_group)
 
-

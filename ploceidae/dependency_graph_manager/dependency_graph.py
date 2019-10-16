@@ -5,7 +5,6 @@ from operator import getitem
 from ploceidae.constants import GLOBAL_NAMESPACE
 from ploceidae.dependency_graph_manager.module_caches import ModuleCaches
 
-
 class DependencyGraph(object):
     def __init__(self):
         self.module_caches = ModuleCaches()

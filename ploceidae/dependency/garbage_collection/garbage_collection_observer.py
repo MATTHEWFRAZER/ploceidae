@@ -1,9 +1,8 @@
-import gc
 from threading import Lock
 
 from six import with_metaclass
 
-from ploceidae.dependency.garbage_collection.singleton_implementer import SingletonImplementer
+from ploceidae.utilities.singleton_implementer import SingletonImplementer
 from ploceidae.constants import PHASE_STOP
 
 class GarbageCollectionObserver(with_metaclass(SingletonImplementer)):

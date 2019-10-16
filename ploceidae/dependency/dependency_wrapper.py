@@ -2,11 +2,10 @@ from functools import wraps
 import logging
 
 from ploceidae.constants import BINDINGS
-from ploceidae.dependency_graph_manager  import DependencyGraphManager
+from ploceidae.utilities.common import DEPENDENCY_GRAPH_MANAGER
 from ploceidae.dependency.dependency_helper_methods import DependencyHelperMethods
 from ploceidae.dependency.dependency_locator import DependencyLocator
 from ploceidae.dependency.garbage_collection.garbage_collection_observer import GarbageCollectionObserver
-from ploceidae.dependency_graph_manager.dependency_graph import DependencyGraph
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +13,7 @@ class DependencyWrapper(DependencyLocator, DependencyHelperMethods):
     """decorator is a class object because that will make it easier to hook into later"""
 
     GARBAGE_COLLECTION_OBSERVER = GarbageCollectionObserver.get_instance()
-    DEPENDENCY_GRAPH_MANAGER = DependencyGraphManager(DependencyGraph())
+    DEPENDENCY_GRAPH_MANAGER = DEPENDENCY_GRAPH_MANAGER
 
     def __init__(self, **kwargs):
         """

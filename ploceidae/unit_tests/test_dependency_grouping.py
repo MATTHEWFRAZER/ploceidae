@@ -62,3 +62,19 @@ class TestDependencyGrouping:
 
         assert default_container.wire_dependencies(b) == "ba"
         assert default_container.wire_dependencies(c) == ("a",)
+
+    def test_dependency_that_has_same_name_as_group(self, dependency_decorator, default_container):
+        dep = 3
+
+        @dependency_decorator(group="group", global_dependency=True)
+        def group():
+            return dep
+
+        def a(group):
+            return group
+
+        def b(*group):
+            return group
+
+        assert default_container.wire_dependencies(a) == dep
+        assert default_container.wire_dependencies(b) == (dep,)
