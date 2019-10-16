@@ -4,7 +4,7 @@ __pycache__
 .coverage
 .idea
 artifacts
-ploceidae.egg-info
+*.egg-info
 dist
 build
 venv
