@@ -3,10 +3,9 @@ import logging
 from pprint import pformat
 
 from ploceidae.dependency import DependencyWrapper
+from ploceidae.utilities.common import DEPENDENCY_GRAPH_MANAGER
 from ploceidae.dependency.dependency_helper_methods import DependencyHelperMethods
 from ploceidae.container.partial_injection import PartialInjection
-from ploceidae.dependency_graph_manager.dependency_graph_manager import DependencyGraphManager
-from ploceidae.dependency_graph_manager.dependency_graph import DependencyGraph
 
 logger = logging.getLogger(__name__)
 
@@ -50,8 +49,8 @@ class Container(object):
         return when_called
 
     @classmethod
-    def get_basic_container(cls):
-        return cls(DependencyGraphManager(DependencyGraph()))
+    def get_basic_container(cls, dependency_graph_manager=DEPENDENCY_GRAPH_MANAGER):
+        return cls(dependency_graph_manager)
 
     @staticmethod
     def log_partial_injection_data(dependency_name, dependencies_to_ignore, args_to_apply_as_dict, args_to_apply_as_group):
