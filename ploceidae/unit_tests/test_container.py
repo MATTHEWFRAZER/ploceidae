@@ -3,7 +3,7 @@ import types
 from six import with_metaclass
 import pytest
 
-from ploceidae.scope_binding.scope_enum import ScopeEnum
+from ploceidae.dependency_lifetime.dependency_lifetime_enum import DependencyLifetimeEnum
 
 class Dummy(object):
     def __init__(self, a, b, c):
@@ -36,7 +36,7 @@ class TestContainer(object):
         assert "xabcbcc" == wired()
 
     # make sure that exceptions bubble up
-    def test_wire_up_dependencies_with_obj_that_is_in_dependency_graph(self, object_to_wire_up, container):
+    def test_wire_up_dependencies_with_object_that_is_in_dependency_graph(self, object_to_wire_up, container):
         try:
             wired = container.wire_dependencies(object_to_wire_up.dependency_object)
         except Exception as ex:
@@ -108,8 +108,8 @@ class TestContainer(object):
 
         assert "a" == default_container.wire_dependencies(A.method) == default_container.wire_dependencies(A.staticmethod) == default_container.wire_dependencies(A.classmethod)
 
-    def test_partial_wire_up_dependencies_gets_correct_value_with_instance_scope_when_later_call_to_wire_up(self, dependency_decorator, default_container):
-        @dependency_decorator(scope=ScopeEnum.CLASS, global_dependency=True)
+    def test_partial_wire_up_dependencies_gets_correct_value_with_instance_dependency_lifetime_when_later_call_to_wire_up(self, dependency_decorator, default_container):
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS, global_dependency=True)
         def conflict(): return WireUp()
 
         class WireUp:
@@ -119,20 +119,20 @@ class TestContainer(object):
         partially_wired = default_container.partial_wire_dependencies(WireUp().method)
         assert default_container.wire_dependencies(WireUp().method) is partially_wired()
 
-    def test_mixed_scope(self, dependency_decorator, default_container):
-        @dependency_decorator(scope=ScopeEnum.MODULE)
+    def test_mixed_dependency_lifetime(self, dependency_decorator, default_container):
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.MODULE)
         def a(): return type("A", (), {})()
 
-        @dependency_decorator(scope=ScopeEnum.CLASS)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS)
         def b(): return type("B", (), {})()
 
-        @dependency_decorator(scope=ScopeEnum.INSTANCE)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE)
         def c(): return type("C", (), {})()
 
-        @dependency_decorator(scope=ScopeEnum.SESSION)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.SESSION)
         def d(): return type("D", (), {})()
 
-        @dependency_decorator(scope=ScopeEnum.FUNCTION)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.FUNCTION)
         def e(): return type("E", (), {})()
 
         # need a more robust way of testing this
@@ -163,12 +163,12 @@ class TestContainer(object):
             default_container.wire_dependencies(instance.x)
 
     def test_wire_up_dependencies_with_instance_introspection_generated_method(self, default_container, dependency_decorator):
-        # test two instances that generate the same methods, class scope should get the same, instance and below should not
-        @dependency_decorator(scope=ScopeEnum.CLASS, global_dependency=True)
+        # test two instances that generate the same methods, class dependency_lifetime should get the same, instance and below should not
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS, global_dependency=True)
         def introspection_class_test():
             return type("Class", (), {})
 
-        @dependency_decorator(scope=ScopeEnum.INSTANCE, global_dependency=True)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE, global_dependency=True)
         def introspection_instance_test():
             return type("Instance", (), {})
 
@@ -187,12 +187,12 @@ class TestContainer(object):
 
     @pytest.mark.skip(reason="lambda can't get __self__.__class__")
     def test_wire_up_dependencies_with_instance_introspection_incorrectly_generated_method(self, container_constructor, dependency_decorator):
-        # test two instances that generate the same methods, class scope should get the same, instance and below should not
-        @dependency_decorator(scope=ScopeEnum.CLASS, global_dependency=True)
+        # test two instances that generate the same methods, class dependency_lifetime should get the same, instance and below should not
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS, global_dependency=True)
         def introspection_class_test():
             return type("Class", (), {})
 
-        @dependency_decorator(scope=ScopeEnum.INSTANCE, global_dependency=True)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE, global_dependency=True)
         def introspection_instance_test():
             return type("Instance", (), {})
 
