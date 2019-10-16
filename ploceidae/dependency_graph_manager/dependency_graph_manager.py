@@ -21,7 +21,7 @@ class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolut
                 raise ValueError("dependency makes graph cyclic")
 
     def resolve_dependencies(self, dependency_wrapper, time_stamp, *dependencies_to_ignore):
-        # need to be able to use the other default scopes
+        # need to be able to use the other default dependency lifetimes
         resolved_dependencies = self.resolve_dependencies_inner(dependency_wrapper, time_stamp, *dependencies_to_ignore)
         # if we have kwargs, we have a group by name of argument representing kwargs
         group = self.get_group(dependency_wrapper.dependency_object)
@@ -29,4 +29,3 @@ class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolut
         if group:
             resolved_dependencies_by_group = self.resolve_dependencies_by_group(dependency_wrapper, group, time_stamp)
         return ResolvedDependencies(resolved_dependencies + resolved_dependencies_by_group, resolved_dependencies, resolved_dependencies_by_group)
-

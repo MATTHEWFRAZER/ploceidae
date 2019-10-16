@@ -11,7 +11,7 @@ from ploceidae.dependency_graph_manager import DependencyGraphManager
 from ploceidae.container import Container
 from ploceidae.dependency import DependencyWrapper
 from ploceidae.dependency import dependency
-from ploceidae.scope_binding.scope_enum import ScopeEnum
+from ploceidae.dependency_lifetime.dependency_lifetime_enum import DependencyLifetimeEnum
 
 class Dummy(): pass
 
@@ -76,7 +76,7 @@ def object_to_resolve(dependency_decorator, default_dependency_graph_manager):
 
     #TODO: HACK ALERT
     dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER = default_dependency_graph_manager
-    @dependency_decorator(scope=ScopeEnum.MODULE, global_dependency=True)
+    @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.MODULE, global_dependency=True)
     def a():
         return Dummy()
     return a
@@ -154,8 +154,8 @@ def partial_dependency_fixture(request, container):
 
 @pytest.fixture
 def separate_decorator():
-    def dec(func):
+    def inner_decorator(func):
         def nested(*args, **kwargs):
             return func(*args, **kwargs)
         return nested
-    return dec
+    return inner_decorator

@@ -166,9 +166,9 @@ class TestDependency:
         container.wire_dependencies(a)
 
 
-    def test_dependency_application_with_scope_passed_as_argument(self, dependency_decorator):
+    def test_dependency_application_with_dependency_lifetime_passed_as_argument(self, dependency_decorator):
         try:
-            @dependency_decorator(scope="function")
+            @dependency_decorator(dependency_lifetime="function")
             def a(): pass
         except Exception as ex:
             pytest.fail("could not decorate function. Ex: {0}".format(ex))

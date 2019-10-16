@@ -44,7 +44,7 @@ class Container(object):
         def when_called(*args, **kwargs):
             logger.debug("calling replacing alt keys callback")
             ret = partial_injection(*args, **kwargs)
-            self.dependency_graph_manager.replace_alt_keys_with_valid_scope_from_instance(ret, object_to_wire_up, time_stamp)
+            self.dependency_graph_manager.replace_alt_keys_with_valid_dependency_lifetime_from_instance(ret, object_to_wire_up, time_stamp)
             return ret
         return when_called
 

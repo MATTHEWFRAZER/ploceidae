@@ -3,8 +3,8 @@ from datetime import datetime
 import pytest
 
 from ploceidae.dependency import DependencyWrapper
-from ploceidae.scope_binding.scope_key import ScopeEnum
-from ploceidae.scope_binding.scope_key import ScopeKey
+from ploceidae.dependency_lifetime.dependency_lifetime_key import DependencyLifetimeEnum
+from ploceidae.dependency_lifetime.dependency_lifetime_key import DependencyLifetimeKey
 from ploceidae.dependency_graph_manager.cache_item import CacheItem
 from ploceidae.dependency_graph_manager.dependency_graph import DependencyGraph
 from ploceidae.constants import GLOBAL_NAMESPACE
@@ -77,21 +77,21 @@ class TestDependencyGraphManager(object):
 
     # do we want to test this behavior?
     def test_resolve_dependencies_after_adding_dependency(self, dependency_graph, default_dependency_graph_manager):
-        scope_key_object = self.scope_key_init(dependency_graph[-1], ScopeEnum.FUNCTION, datetime.now())
-        scope_key_object2 = self.scope_key_init(dependency_graph[-2], ScopeEnum.FUNCTION, datetime.now())
-        assert not default_dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key_object).all_resolved_dependencies
+        dependency_lifetime_key = self.dependency_lifetime_key_init(dependency_graph[-1], DependencyLifetimeEnum.FUNCTION, datetime.now())
+        dependency_lifetime_key2 = self.dependency_lifetime_key_init(dependency_graph[-2], DependencyLifetimeEnum.FUNCTION, datetime.now())
+        assert not default_dependency_graph_manager.resolve_dependencies(dependency_graph[-1], dependency_lifetime_key).all_resolved_dependencies
         default_dependency_graph_manager.add_dependency(dependency_graph[-1], global_dependency=True)
-        assert default_dependency_graph_manager.resolve_dependencies(dependency_graph[-2], scope_key_object2).resolved_dependencies[0] == dependency_graph[-1].dependency_object.__name__
+        assert default_dependency_graph_manager.resolve_dependencies(dependency_graph[-2], dependency_lifetime_key2).resolved_dependencies[0] == dependency_graph[-1].dependency_object.__name__
 
     def test_resolve_dependencies_with_dependent_that_has_no_dependencies(self, dependency_graph, default_dependency_graph_manager):
-        scope_key_object = self.scope_key_init(dependency_graph[-1], ScopeEnum.FUNCTION, datetime.now())
-        assert not default_dependency_graph_manager.resolve_dependencies(dependency_graph[-1], scope_key_object).all_resolved_dependencies
+        dependency_lifetime_key = self.dependency_lifetime_key_init(dependency_graph[-1], DependencyLifetimeEnum.FUNCTION, datetime.now())
+        assert not default_dependency_graph_manager.resolve_dependencies(dependency_graph[-1], dependency_lifetime_key).all_resolved_dependencies
 
     def test_resolve_dependencies(self, default_dependency_graph_manager, dependency_graph):
-        scope_key_object = self.scope_key_init(dependency_graph[0].dependency_object, ScopeEnum.FUNCTION, datetime.now())
+        dependency_lifetime_key = self.dependency_lifetime_key_init(dependency_graph[0].dependency_object, DependencyLifetimeEnum.FUNCTION, datetime.now())
         try:
             self.add_dependencies(default_dependency_graph_manager, *dependency_graph)
-            dependencies = default_dependency_graph_manager.resolve_dependencies(dependency_graph[0], scope_key_object)
+            dependencies = default_dependency_graph_manager.resolve_dependencies(dependency_graph[0], dependency_lifetime_key)
             dependency_graph[0].dependency_object(*dependencies.all_resolved_dependencies)
         except ValueError as ex:
             pytest.fail("dependency resolution failed:{0}".format(ex))
@@ -103,7 +103,7 @@ class TestDependencyGraphManager(object):
         def a(b): pass
 
         default_dependency_graph_manager.add_dependency(DependencyWrapper.get_dependency_without_decoration(a), global_dependency=True)
-        default_dependency_graph_manager.resolve_dependencies(a, ScopeKey(a))
+        default_dependency_graph_manager.resolve_dependencies(a, DependencyLifetimeKey(a))
 
     @pytest.mark.xfail(raises=BaseException)
     def test_resolve_dependencies_with_missing_terminal_node(self, default_dependency_graph_manager):
@@ -116,7 +116,7 @@ class TestDependencyGraphManager(object):
 
         default_dependency_graph_manager.add_dependency(DependencyWrapper.get_dependency_without_decoration(x), global_dependency=True)
         default_dependency_graph_manager.add_dependency(DependencyWrapper.get_dependency_without_decoration(y), global_dependency=True)
-        default_dependency_graph_manager.resolve_dependencies(test, ScopeKey(test))
+        default_dependency_graph_manager.resolve_dependencies(test, DependencyLifetimeKey(test))
 
     @classmethod
     def get_mocked_graph(cls, dependency_graph_node):
@@ -131,8 +131,8 @@ class TestDependencyGraphManager(object):
             dependency_graph_manager.add_dependency(dependency, global_dependency=True)
 
     @staticmethod
-    def scope_key_init(obj, scope, time_stamp):
-        scope_key = ScopeKey(obj)
-        scope_key.init_scope(scope)
-        scope_key.init_alt_key(time_stamp)
-        return scope_key
+    def dependency_lifetime_key_init(obj, dependency_lifetime, time_stamp):
+        dependency_lifetime_key = DependencyLifetimeKey(obj)
+        dependency_lifetime_key.init_dependency_lifetime(dependency_lifetime)
+        dependency_lifetime_key.init_alt_key(time_stamp)
+        return dependency_lifetime_key
