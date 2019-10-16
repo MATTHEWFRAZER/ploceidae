@@ -1,4 +1,4 @@
-class DependencyLifetimeEnum(object):
+class DependencyLifetimeEnum:
     SESSION  = "session"
     MODULE   = "module"
     CLASS    = "class"

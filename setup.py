@@ -15,7 +15,7 @@ setup(name="ploceidae",
       packages=find_packages(),
       include_package_data=False,
       zip_safe=False,
-      version="1.0.1"
+      version="1.0.3"
       )
 
 

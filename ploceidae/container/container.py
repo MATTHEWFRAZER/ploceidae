@@ -18,16 +18,16 @@ class Container(object):
         self.dependency_graph_manager = dependency_graph_manager
 
     def wire_dependencies(self, object_to_wire_up, *dependencies_to_ignore):
-        return self.partial_wire_dependencies(object_to_wire_up, *dependencies_to_ignore)()
+        return self.partially_wire_dependencies(object_to_wire_up, *dependencies_to_ignore)()
 
-    def partial_wire_dependencies(self, object_to_wire_up, *dependencies_to_ignore):
+    def partially_wire_dependencies(self, object_to_wire_up, *dependencies_to_ignore):
         DependencyHelperMethods.input_validation_for_dependency_object(object_to_wire_up)
 
         dependency_object = DependencyWrapper.get_dependency_without_decoration(object_to_wire_up)
 
-        return self.partial_wire_dependencies_inner(dependency_object, dependencies_to_ignore, object_to_wire_up)
+        return self.partially_wire_dependencies_inner(dependency_object, dependencies_to_ignore, object_to_wire_up)
 
-    def partial_wire_dependencies_inner(self, dependency_object, dependencies_to_ignore, object_to_wire_up):
+    def partially_wire_dependencies_inner(self, dependency_object, dependencies_to_ignore, object_to_wire_up):
         time_stamp = datetime.now()
         resolved_dependencies = self.dependency_graph_manager.resolve_dependencies(dependency_object, time_stamp,
                                                                                    *dependencies_to_ignore)

@@ -1,12 +1,13 @@
 from ploceidae.dependency_lifetime.dependency_lifetime_enum import DependencyLifetimeEnum
 from ploceidae.dependency_graph_manager.cache_item import CacheItem
 from ploceidae.constants import GLOBAL_NAMESPACE
+from ploceidae.utilities.visibility_enum import VisibilityEnum
 
 
 class TestDependencyLifetimeManagement:
     # this also needs to be tested along a dependency hierarchy
     def test_function_dependency_lifetime_entry_is_deleted_after_delivered_to_function(self, default_container, dependency_decorator, dummy):
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.FUNCTION, global_dependency=True)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.FUNCTION, visibility=VisibilityEnum.GLOBAL)
         def a():
             return dummy.__class__()
 
@@ -32,7 +33,7 @@ class TestDependencyLifetimeManagement:
 
     def test_instance_dependency_lifetime_object_entry_is_deleted_after_instance_is_deleted(self, default_container, dependency_decorator):
 
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE, global_dependency=True)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE, visibility=VisibilityEnum.GLOBAL)
         def a():
             return type("T", (), {})()
 
@@ -58,7 +59,7 @@ class TestDependencyLifetimeManagement:
         assert cache_item in dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER.dependency_graph
 
     def test_class_dependency_lifetime_allows_for_multiple_objects(self, default_container, dependency_decorator):
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS, global_dependency=True)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS, visibility=VisibilityEnum.GLOBAL)
         def mult():
             return type("B", (), {})()
 
@@ -78,7 +79,7 @@ class TestDependencyLifetimeManagement:
         # TODO: HACK ALERT
         dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER = container.dependency_graph_manager
 
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE, global_dependency=True)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE, visibility=VisibilityEnum.GLOBAL)
         def instance_a():
             self.COUNT += 1
             return self.COUNT
@@ -115,10 +116,10 @@ class TestDependencyLifetimeManagement:
         # TODO: HACK ALERT
         dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER = container.dependency_graph_manager
 
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE, global_dependency=True)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE, visibility=VisibilityEnum.GLOBAL)
         def conflict(): return conflict.__name__
 
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS, global_dependency=True)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS, visibility=VisibilityEnum.GLOBAL)
         def conflict(): return WireUp()
 
         class WireUp:
