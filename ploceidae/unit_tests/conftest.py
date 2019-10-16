@@ -1,27 +1,26 @@
 from functools import partial
-import logging
+from itertools import chain
 import sys
 
 import pytest
 
+from ploceidae.dependency_graph_manager.dependency_graph import DependencyGraph
+
 sys.path.append("..")
 from ploceidae.dependency_graph_manager import DependencyGraphManager
 from ploceidae.container import Container
+from ploceidae.dependency import DependencyWrapper
 from ploceidae.dependency import dependency
-from ploceidae.dependency import Dependency
-from ploceidae.scope_binding.scope_enum import ScopeEnum
-from ploceidae.scope_binding.scope_key import ScopeKey
+from ploceidae.dependency_lifetime.dependency_lifetime_enum import DependencyLifetimeEnum
 
 class Dummy(): pass
 
 @pytest.fixture
-def dependency_class_obj():
-    return Dependency
-
-@pytest.fixture
-def dependency_graph_manager():
-    yield DependencyGraphManager
-    DependencyGraphManager.DEPENDENCY_GRAPH.clear()
+def default_dependency_graph_manager():
+    dependency_graph_manager = DependencyGraphManager(DependencyGraph())
+    DependencyWrapper.DEPENDENCY_GRAPH_MANAGER = dependency_graph_manager
+    yield dependency_graph_manager
+    dependency_graph_manager.dependency_graph.clear()
 
 @pytest.fixture
 def dependency_graph_with_cycle(dependency_init):
@@ -42,10 +41,6 @@ def dependency_graph(dependency_init):
     return dependency_init(a), dependency_init(b), dependency_init(c)
 
 @pytest.fixture
-def scope_key():
-    return ScopeKey
-
-@pytest.fixture
 def dependency_graph2(dependency_init):
     def d(e): return "d" + e
     def e(f): return "e" + f
@@ -55,7 +50,7 @@ def dependency_graph2(dependency_init):
 
 
 @pytest.fixture
-def dependency_graph_with_obj_that_depends_on_all_other_nodes(dependency_init, dependency_graph):
+def dependency_graph_with_object_that_depends_on_all_other_nodes(dependency_init, dependency_graph):
     def x(a, b, c): return "x" + a + b + c
     return (dependency_init(x),) + dependency_graph
 
@@ -69,45 +64,49 @@ def dependency_graph_node_with_no_in_edges(dependency_init):
     return dependency_init(lambda: None)
 
 @pytest.fixture
-def dependency_init(dependency_class_obj):
-    return partial(dependency_class_obj.get_dependency_without_decoration, global_dependency=True)
-
-@pytest.fixture
-def container_with_no_setup():
-    return Container
+def dependency_init():
+    return partial(DependencyWrapper.get_dependency_without_decoration, global_dependency=True)
 
 @pytest.fixture
 def dummy():
     return Dummy()
 
 @pytest.fixture
-def object_to_resolve(dependency_decorator):
-    @dependency_decorator(scope=ScopeEnum.MODULE, global_dependency=True)
+def object_to_resolve(dependency_decorator, default_dependency_graph_manager):
+
+    #TODO: HACK ALERT
+    dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER = default_dependency_graph_manager
+    @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.MODULE, global_dependency=True)
     def a():
         return Dummy()
     return a
 
 @pytest.fixture
-def resolved_object(container_with_no_setup, object_to_resolve):
+def resolved_object(object_to_resolve, dependency_decorator, default_container):
+
+    # TODO: HACK ALERT
+    default_container.dependency_graph_manager = dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER
     def b(a):
         return a
-    return container_with_no_setup.wire_dependencies(b)
+    return default_container.wire_dependencies(b)
 
 @pytest.fixture
-def container(dependency_graph_with_obj_that_depends_on_all_other_nodes, dependency_graph_manager):
-    for dependency in dependency_graph_with_obj_that_depends_on_all_other_nodes:
+def container(dependency_graph_with_object_that_depends_on_all_other_nodes):
+    dependency_graph_manager = DependencyGraphManager(DependencyGraph())
+    for dependency in dependency_graph_with_object_that_depends_on_all_other_nodes:
         dependency_graph_manager.add_dependency(dependency, global_dependency=True)
-    return Container
+    container = Container(dependency_graph_manager)
+    return container
 
 @pytest.fixture
-def container_constructor():
-    DependencyGraphManager.DEPENDENCY_GRAPH.clear()
-    return Container
+def default_container(default_dependency_graph_manager):
+    return Container(default_dependency_graph_manager)
 
 @pytest.fixture
-def container2(dependency_graph2, dependency_graph_manager, container):
-    for dependency in dependency_graph2:
-        dependency_graph_manager.add_dependency(dependency, global_dependency=True)
+def container2(dependency_graph2, dependency_graph_with_object_that_depends_on_all_other_nodes, default_dependency_graph_manager):
+    for dependency in chain.from_iterable((dependency_graph2, dependency_graph_with_object_that_depends_on_all_other_nodes)):
+        default_dependency_graph_manager.add_dependency(dependency, global_dependency=True)
+    container = Container(default_dependency_graph_manager)
     return container
 
 @pytest.fixture
@@ -129,12 +128,12 @@ def multiple_module_setup_with_module(dependency_decorator):
         return "module b"
 
 @pytest.fixture
-def obj_to_wire_up(dependency_graph_with_obj_that_depends_on_all_other_nodes):
-    return dependency_graph_with_obj_that_depends_on_all_other_nodes[0]
+def object_to_wire_up(dependency_graph_with_object_that_depends_on_all_other_nodes):
+    return dependency_graph_with_object_that_depends_on_all_other_nodes[0]
 
 
 @pytest.fixture
-def obj_to_wire_up2(dependency_graph2):
+def object_to_wire_up2(dependency_graph2):
     return dependency_graph2[0]
 
 
@@ -145,8 +144,7 @@ def dependency_graph_node():
 
 @pytest.fixture
 def dependency_decorator():
-    yield dependency
-    DependencyGraphManager.DEPENDENCY_GRAPH.clear()
+    return dependency
 
 
 @pytest.fixture(params=[(("a",), ("abc",)), (("b",), ("bc",)), (("a", "b"), ("abc", "bc"))])
@@ -156,8 +154,8 @@ def partial_dependency_fixture(request, container):
 
 @pytest.fixture
 def separate_decorator():
-    def dec(func):
+    def inner_decorator(func):
         def nested(*args, **kwargs):
             return func(*args, **kwargs)
         return nested
-    return dec
+    return inner_decorator

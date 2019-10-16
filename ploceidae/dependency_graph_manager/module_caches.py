@@ -14,29 +14,29 @@ class ModuleCaches(object):
         return self.__bool__()
 
     def __contains__(self, cache_item):
-        return cache_item.module in self.caches and cache_item.dependency_name in self.caches[cache_item.module]
+        return cache_item.dependency_module in self.caches and cache_item.dependency_name in self.caches[cache_item.dependency_module]
 
     def __getitem__(self, cache_item):
         try:
-            self.caches[cache_item.module]
+            self.caches[cache_item.dependency_module]
         except KeyError:
             raise KeyError("module does exist in cache")
 
         try:
-            return self.caches[cache_item.module][cache_item.dependency_name]
+            return self.caches[cache_item.dependency_module][cache_item.dependency_name]
         except KeyError:
-            raise KeyError("{0} does not contain entry with name {1}".format(cache_item.module, cache_item.name))
+            raise KeyError("{0} does not contain entry with name {1}".format(cache_item.dependency_module, cache_item.dependency_name))
 
     def __len__(self):
         lengths = map(len, self.caches.values())
         return sum(lengths)
 
     def __setitem__(self, cache_item, obj):
-        if cache_item.module not in modules:
+        if cache_item.dependency_module not in modules:
             raise ValueError("cache item is not a valid module")
-        if cache_item.module not in self.caches:
-            self.caches[cache_item.module] = {}
-        self.caches[cache_item.module][cache_item.dependency_name] = obj
+        if cache_item.dependency_module not in self.caches:
+            self.caches[cache_item.dependency_module] = {}
+        self.caches[cache_item.dependency_module][cache_item.dependency_name] = obj
 
     def clear(self):
         self.caches.clear()
@@ -47,7 +47,7 @@ class ModuleCaches(object):
         return cache_copy
 
     def pop(self, cache_item):
-        self.caches[cache_item.module].pop(cache_item.dependency_name)
+        self.caches[cache_item.dependency_module].pop(cache_item.dependency_name)
 
     def values(self):
         return chain.from_iterable(cache.values() for cache in self.caches.values())

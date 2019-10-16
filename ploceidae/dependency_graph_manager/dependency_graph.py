@@ -5,7 +5,6 @@ from operator import getitem
 from ploceidae.constants import GLOBAL_NAMESPACE
 from ploceidae.dependency_graph_manager.module_caches import ModuleCaches
 
-
 class DependencyGraph(object):
     def __init__(self):
         self.module_caches = ModuleCaches()
@@ -20,7 +19,7 @@ class DependencyGraph(object):
         return self.__bool__()
 
     def __contains__(self, cache_item):
-        if cache_item.module == GLOBAL_NAMESPACE:
+        if cache_item.dependency_module == GLOBAL_NAMESPACE:
             return cache_item.dependency_name in self.global_cache or cache_item.dependency_name in self.builtins_cache
         else:
             return cache_item in self.module_caches
@@ -28,11 +27,11 @@ class DependencyGraph(object):
     def __getitem__(self, cache_item):
         return self.__general_cache_check(cache_item, getitem)
 
-    def __setitem__(self, cache_item, value):
-        if cache_item.module == GLOBAL_NAMESPACE:
-            self.global_cache[cache_item.dependency_name] = value
+    def __setitem__(self, cache_item, dependency_wrapper):
+        if cache_item.dependency_module == GLOBAL_NAMESPACE:
+            self.global_cache[cache_item.dependency_name] = dependency_wrapper
         else:
-            self.module_caches[cache_item] = value
+            self.module_caches[cache_item] = dependency_wrapper
 
     def __len__(self):
         return len(self.module_caches) + len(self.global_cache) + len(self.builtins_cache)
@@ -68,4 +67,4 @@ class DependencyGraph(object):
         elif cache_item.dependency_name in self.builtins_cache:
             return to_call_on_caches(self.builtins_cache, cache_item.dependency_name)
         else:
-            raise KeyError("could not find cache_item: {0}::{1}".format(cache_item.module, cache_item.dependency_name))
+            raise KeyError("could not find cache_item: {0}::{1}".format(cache_item.dependency_module, cache_item.dependency_name))

@@ -3,7 +3,7 @@ import types
 from six import with_metaclass
 import pytest
 
-from ploceidae.scope_binding.scope_enum import ScopeEnum
+from ploceidae.dependency_lifetime.dependency_lifetime_enum import DependencyLifetimeEnum
 
 class Dummy(object):
     def __init__(self, a, b, c):
@@ -31,22 +31,22 @@ class TestContainer(object):
         wired = container.wire_dependencies(Dummy(1, 2, 3).class_method)
         assert "abcbcc" == wired
 
-    def test_partial_wire_up_dependencies_works_when_dependencies_to_ignore_is_empty(self, obj_to_wire_up, container):
-        wired = container.partial_wire_dependencies(obj_to_wire_up.dependency_obj)
+    def test_partial_wire_up_dependencies_works_when_dependencies_to_ignore_is_empty(self, object_to_wire_up, container):
+        wired = container.partial_wire_dependencies(object_to_wire_up.dependency_object)
         assert "xabcbcc" == wired()
 
     # make sure that exceptions bubble up
-    def test_wire_up_dependencies_with_obj_that_is_in_dependency_graph(self, obj_to_wire_up, container):
+    def test_wire_up_dependencies_with_object_that_is_in_dependency_graph(self, object_to_wire_up, container):
         try:
-            wired = container.wire_dependencies(obj_to_wire_up.dependency_obj)
+            wired = container.wire_dependencies(object_to_wire_up.dependency_object)
         except Exception as ex:
             pytest.fail("exception occurred while wiring dependencies: {}".format(ex))
 
         assert "xabcbcc" == wired
 
-    def test_wire_up_dependencies_with_multiple_connected_components(self, obj_to_wire_up, obj_to_wire_up2, container2):
-        wired_up = container2.wire_dependencies(obj_to_wire_up.dependency_obj)
-        wired_up2 = container2.wire_dependencies(obj_to_wire_up2.dependency_obj)
+    def test_wire_up_dependencies_with_multiple_connected_components(self, object_to_wire_up, object_to_wire_up2, container2):
+        wired_up = container2.wire_dependencies(object_to_wire_up.dependency_object)
+        wired_up2 = container2.wire_dependencies(object_to_wire_up2.dependency_object)
         assert wired_up == "xabcbcc"
         assert wired_up2 == "def"
 
@@ -80,7 +80,7 @@ class TestContainer(object):
             obj = partial_wired(*partial_dependency_fixture.left_over_dependencies)
         assert obj == "abcbcc"
 
-    def test_wire_up_dependencies_with_dynamically_generated_methods(self, container, dependency_decorator):
+    def test_wire_up_dependencies_with_dynamically_generated_methods(self, default_container, dependency_decorator):
         @dependency_decorator(global_dependency=True)
         def inner_a(): return "a"
 
@@ -92,10 +92,10 @@ class TestContainer(object):
         # eventually don't use self as a first argument (e.g. _) as one might
         a.method = types.MethodType(lambda self, inner_a: inner_a, a)
 
-        assert "a" == container.wire_dependencies(a.non_valid_method) == container.wire_dependencies(a.method)
+        assert "a" == default_container.wire_dependencies(a.non_valid_method) == default_container.wire_dependencies(a.method)
 
     @pytest.mark.skip(reason="not supported")
-    def test_wire_up_dependencies_with_class_introspection_generated_method(self, container, dependency_decorator):
+    def test_wire_up_dependencies_with_class_introspection_generated_method(self, default_container, dependency_decorator):
         @dependency_decorator(global_dependency=True)
         def inner_a(): return "a"
 
@@ -106,33 +106,33 @@ class TestContainer(object):
         setattr(A, "classmethod", classmethod(lambda cls, inner_a: inner_a))
         setattr(A, "staticmethod", staticmethod(lambda inner_a: inner_a))
 
-        assert "a" == container.wire_dependencies(A.method) == container.wire_dependencies(A.staticmethod) == container.wire_dependencies(A.classmethod)
+        assert "a" == default_container.wire_dependencies(A.method) == default_container.wire_dependencies(A.staticmethod) == default_container.wire_dependencies(A.classmethod)
 
-    def test_partial_wire_up_dependencies_gets_correct_value_with_instance_scope_when_later_call_to_wire_up(self, dependency_decorator, container):
-        @dependency_decorator(scope=ScopeEnum.CLASS, global_dependency=True)
+    def test_partial_wire_up_dependencies_gets_correct_value_with_instance_dependency_lifetime_when_later_call_to_wire_up(self, dependency_decorator, default_container):
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS, global_dependency=True)
         def conflict(): return WireUp()
 
         class WireUp:
             def method(self, conflict):
                 return conflict
 
-        partially_wired = container.partial_wire_dependencies(WireUp().method)
-        assert container.wire_dependencies(WireUp().method) is partially_wired()
+        partially_wired = default_container.partial_wire_dependencies(WireUp().method)
+        assert default_container.wire_dependencies(WireUp().method) is partially_wired()
 
-    def test_mixed_scope(self, dependency_decorator, container):
-        @dependency_decorator(scope=ScopeEnum.MODULE)
+    def test_mixed_dependency_lifetime(self, dependency_decorator, default_container):
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.MODULE)
         def a(): return type("A", (), {})()
 
-        @dependency_decorator(scope=ScopeEnum.CLASS)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS)
         def b(): return type("B", (), {})()
 
-        @dependency_decorator(scope=ScopeEnum.INSTANCE)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE)
         def c(): return type("C", (), {})()
 
-        @dependency_decorator(scope=ScopeEnum.SESSION)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.SESSION)
         def d(): return type("D", (), {})()
 
-        @dependency_decorator(scope=ScopeEnum.FUNCTION)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.FUNCTION)
         def e(): return type("E", (), {})()
 
         # need a more robust way of testing this
@@ -160,17 +160,15 @@ class TestContainer(object):
         for _ in range(10):
             instance = Class()
             obj_cache.append(instance)
-            container.wire_dependencies(instance.x)
+            default_container.wire_dependencies(instance.x)
 
-
-
-    def test_wire_up_dependencies_with_instance_introspection_generated_method(self, container_constructor, dependency_decorator):
-        # test two instances that generate the same methods, class scope should get the same, instance and below should not
-        @dependency_decorator(scope=ScopeEnum.CLASS, global_dependency=True)
+    def test_wire_up_dependencies_with_instance_introspection_generated_method(self, default_container, dependency_decorator):
+        # test two instances that generate the same methods, class dependency_lifetime should get the same, instance and below should not
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS, global_dependency=True)
         def introspection_class_test():
             return type("Class", (), {})
 
-        @dependency_decorator(scope=ScopeEnum.INSTANCE, global_dependency=True)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE, global_dependency=True)
         def introspection_instance_test():
             return type("Instance", (), {})
 
@@ -182,19 +180,19 @@ class TestContainer(object):
 
         one = A()
         two = A()
-        first_class, first_instance   = container_constructor.wire_dependencies(one.method)
-        second_class, second_instance = container_constructor.wire_dependencies(two.method)
+        first_class, first_instance   = default_container.wire_dependencies(one.method)
+        second_class, second_instance = default_container.wire_dependencies(two.method)
         assert first_class is second_class
         assert first_instance is not second_instance
 
     @pytest.mark.skip(reason="lambda can't get __self__.__class__")
     def test_wire_up_dependencies_with_instance_introspection_incorrectly_generated_method(self, container_constructor, dependency_decorator):
-        # test two instances that generate the same methods, class scope should get the same, instance and below should not
-        @dependency_decorator(scope=ScopeEnum.CLASS, global_dependency=True)
+        # test two instances that generate the same methods, class dependency_lifetime should get the same, instance and below should not
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS, global_dependency=True)
         def introspection_class_test():
             return type("Class", (), {})
 
-        @dependency_decorator(scope=ScopeEnum.INSTANCE, global_dependency=True)
+        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE, global_dependency=True)
         def introspection_instance_test():
             return type("Instance", (), {})
 
@@ -211,7 +209,7 @@ class TestContainer(object):
         assert first_class is second_class
         assert first_instance is not second_instance
 
-    def test_wire_up_dependencies_with_metaclass_generated_methods(self, container, dependency_decorator):
+    def test_wire_up_dependencies_with_metaclass_generated_methods(self, default_container, dependency_decorator):
         @dependency_decorator(global_dependency=True)
         def meta_test():
             return meta_test.__name__
@@ -224,10 +222,9 @@ class TestContainer(object):
 
         class A(with_metaclass(MetaClass)): pass
 
-        assert container.wire_dependencies(A().method) == meta_test.__name__
+        assert default_container.wire_dependencies(A().method) == meta_test.__name__
 
-
-    def test_wire_up_dependencies_to_staticmethod_from_getattr(self, container, dependency_decorator):
+    def test_wire_up_dependencies_to_staticmethod_from_getattr(self, default_container, dependency_decorator):
         @dependency_decorator(global_dependency=True)
         def staticmethod_getattr_test():
             return staticmethod_getattr_test.__name__
@@ -236,9 +233,9 @@ class TestContainer(object):
             @staticmethod
             def s(staticmethod_getattr_test): return staticmethod_getattr_test
 
-        assert container.wire_dependencies(getattr(A, "s")) == staticmethod_getattr_test.__name__
+        assert default_container.wire_dependencies(getattr(A, "s")) == staticmethod_getattr_test.__name__
 
-    def test_wire_up_dependencies_to_classmethod_from_getattr(self, container, dependency_decorator):
+    def test_wire_up_dependencies_to_classmethod_from_getattr(self, default_container, dependency_decorator):
         @dependency_decorator(global_dependency=True)
         def classmethod_getattr_test():
             return classmethod_getattr_test.__name__
@@ -247,9 +244,9 @@ class TestContainer(object):
             @classmethod
             def c(cls, classmethod_getattr_test): return classmethod_getattr_test
 
-        assert container.wire_dependencies(getattr(A, "c")) == classmethod_getattr_test.__name__
+        assert default_container.wire_dependencies(getattr(A, "c")) == classmethod_getattr_test.__name__
 
-    def test_wire_up_dependencies_to_instance_method_from_getattr(self, container, dependency_decorator):
+    def test_wire_up_dependencies_to_instance_method_from_getattr(self, default_container, dependency_decorator):
         @dependency_decorator(global_dependency=True)
         def instance_method_getattr_test():
             return instance_method_getattr_test.__name__
@@ -257,9 +254,9 @@ class TestContainer(object):
         class A(object):
             def i(self, instance_method_getattr_test): return instance_method_getattr_test
 
-        assert container.wire_dependencies(getattr(A(), "i")) == instance_method_getattr_test.__name__
+        assert default_container.wire_dependencies(getattr(A(), "i")) == instance_method_getattr_test.__name__
 
-    def test_wire_up_dependencies_to_dereferenced_classmethod(self, container, dependency_decorator):
+    def test_wire_up_dependencies_to_dereferenced_classmethod(self, default_container, dependency_decorator):
         @dependency_decorator(global_dependency=True)
         def classmethod_test():
             return classmethod_test.__name__
@@ -268,9 +265,9 @@ class TestContainer(object):
             @classmethod
             def c(cls, classmethod_test): return classmethod_test
 
-        assert container.wire_dependencies(A.c) == classmethod_test.__name__
+        assert default_container.wire_dependencies(A.c) == classmethod_test.__name__
 
-    def test_wire_up_dependencies_to_staticmethod(self, container, dependency_decorator):
+    def test_wire_up_dependencies_to_staticmethod(self, default_container, dependency_decorator):
         @dependency_decorator(global_dependency=True)
         def static_dereference_test():
             return static_dereference_test.__name__
@@ -279,10 +276,10 @@ class TestContainer(object):
             @staticmethod
             def s(static_dereference_test): return static_dereference_test
 
-        assert container.wire_dependencies(A.s) == static_dereference_test.__name__
+        assert default_container.wire_dependencies(A.s) == static_dereference_test.__name__
 
     @pytest.mark.skip(reason="will fail because the class reference will not be resolved to dereferenced function")
-    def test_wire_up_dependencies_to_dereferenced_classmethod(self, container, dependency_decorator):
+    def test_wire_up_dependencies_to_dereferenced_classmethod(self, default_container, dependency_decorator):
         @dependency_decorator(global_dependency=True)
         def dereferenced_test():
             return dereferenced_test.__name__
@@ -292,9 +289,9 @@ class TestContainer(object):
             def c(cls, dereferenced_test):
                 return dereferenced_test
 
-        assert container.wire_dependencies(A.__dict__["c"].__func__) == dereferenced_test.__name__
+        assert default_container.wire_dependencies(A.__dict__["c"].__func__) == dereferenced_test.__name__
 
-    def test_wire_up_dependencies_to_dereferenced_staticmethod(self, container, dependency_decorator):
+    def test_wire_up_dependencies_to_dereferenced_staticmethod(self, default_container, dependency_decorator):
         @dependency_decorator(global_dependency=True)
         def dereferenced_test():
             return dereferenced_test.__name__
@@ -304,26 +301,25 @@ class TestContainer(object):
             def s(dereferenced_test):
                 return dereferenced_test
 
-        assert container.wire_dependencies(A.__dict__["s"].__func__) == dereferenced_test.__name__
+        assert default_container.wire_dependencies(A.__dict__["s"].__func__) == dereferenced_test.__name__
 
     @pytest.mark.xfail(raises=BaseException)
-    def test_wire_up_dependencies_with_missing_dependencies(self, container_constructor):
+    def test_wire_up_dependencies_with_missing_dependencies(self, default_container):
         def a(b): pass
 
-        container_constructor.wire_dependencies(a)
+        default_container.wire_dependencies(a)
 
     @pytest.mark.xfail(raises=BaseException)
-    def test_wire_up_dependencies_to_dependency_with_missing_dependency(self, container, dependency_decorator):
-        # we can't validate depenencies before actual dependency resolution, because we might add a dependency
+    def test_wire_up_dependencies_to_dependency_with_missing_dependency(self, default_container, dependency_decorator):
+        # we can't validate dependencies before actual dependency resolution, because we might add a dependency
         # after something declares it in its argument list
         @dependency_decorator(global_dependency=True)
         def a(b): pass
 
-        container.wire_dependencies(a)
+        default_container.wire_dependencies(a)
 
     @pytest.mark.xfail(raises=BaseException)
-    def test_wire_up_dependencies_with_missing_terminal_node(self, container, dependency_decorator, dependency_graph):
-        dependency_graph.clear()
+    def test_wire_up_dependencies_with_missing_terminal_node(self, default_container, dependency_decorator):
 
         @dependency_decorator(global_dependency=True)
         def x(y): pass
@@ -333,4 +329,4 @@ class TestContainer(object):
 
         def test(x): pass
 
-        container.wire_dependencies(test)
+        default_container.wire_dependencies(test)

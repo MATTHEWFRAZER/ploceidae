@@ -6,3 +6,5 @@ __pycache__
 artifacts
 ploceidae.egg-info
 dist
+build
+venv

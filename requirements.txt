@@ -1,3 +1,4 @@
+attr
 six
 PyMonad
 pytest

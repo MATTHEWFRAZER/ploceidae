@@ -4,7 +4,7 @@ from pymonad import Functor
 
 from ploceidae.constants import GLOBAL_NAMESPACE
 from ploceidae.dependency_graph_manager.cache_item import CacheItem
-from ploceidae.utilities.pygmy_reduce import pygmy_reduce
+from ploceidae.utilities.interoperable_reduce import interoperable_reduce
 from ploceidae.utilities.reduce_operand import ReduceOperand
 
 logger = logging.getLogger(__name__)
@@ -30,25 +30,25 @@ class DependencyGraphCycleCheckMethods(object):
     @classmethod
     def get_node_with_no_in_edges(cls, temp_graph):
         """finds the first node in the graph it can find with no in edges, if it can not find any, None is returned"""
-        for node_name, node in temp_graph.items():
-            if cls.node_has_no_in_edges(node, temp_graph):
-                return CacheItem(node.dependency_obj, node_name)
+        for dependency_name, dependency_wrapper in temp_graph.items():
+            if cls.node_has_no_in_edges(dependency_wrapper, temp_graph):
+                return CacheItem(dependency_wrapper.dependency_object, dependency_name)
 
     @classmethod
-    def node_has_no_in_edges(cls, node, temp_graph):
+    def node_has_no_in_edges(cls, dependency_wrapper, temp_graph):
         def no_dependencies_appear_in_temp_graph(*dependencies):
-            return not any(cls.dependency_appears_in_temp_graph(dependency, node, temp_graph) for dependency in dependencies)
+            return not any(cls.dependency_appears_in_temp_graph(dependency_name, dependency_wrapper, temp_graph) for dependency_name in dependencies)
 
         reduce_operand = ReduceOperand(no_dependencies_appear_in_temp_graph)
-        return pygmy_reduce(lambda x, y: x & Functor(y), node.dependencies, reduce_operand).invoke()
+        return interoperable_reduce(lambda x, y: x & Functor(y), dependency_wrapper.dependencies, reduce_operand).invoke()
 
     @staticmethod
-    def dependency_appears_in_temp_graph(dependency, node, temp_graph):
-        # we use dependency object here because it gives us access to a module (doesn't have to be a valid module in this case)
-        cache_item = CacheItem(node.dependency_obj, dependency)
+    def dependency_appears_in_temp_graph(dependency_name, dependency_wrapper, temp_graph):
+        # we use dependency_name object here because it gives us access to a module (doesn't have to be a valid module in this case)
+        cache_item = CacheItem(dependency_wrapper.dependency_object, dependency_name)
         if cache_item in temp_graph:
             return True
-        cache_item.module = GLOBAL_NAMESPACE
+        cache_item.dependency_module = GLOBAL_NAMESPACE
         if cache_item in temp_graph:
             return True
 

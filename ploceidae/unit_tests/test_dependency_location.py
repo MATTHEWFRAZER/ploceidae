@@ -1,8 +1,22 @@
+from ploceidae.dependency import dependency
+from ploceidae.dependency_lifetime.dependency_lifetime_enum import DependencyLifetimeEnum
+from ploceidae.dependency_lifetime.dependency_lifetime_key import DependencyLifetimeKey
+
 class TestDependencyLocation:
 
-    def test_function_scope(self, dependency_class_obj, scope_key):
-        dependency_instance = dependency_class_obj()
+    def test_function_dependency_lifetime(self):
+        dependency_instance = dependency(dependency_lifetime=DependencyLifetimeEnum.FUNCTION)
         l = lambda: type("T", (), {})
         dependency_instance(l)
-        key = scope_key(l)
+        key = DependencyLifetimeKey(l)
         assert dependency_instance.locate(key) != dependency_instance.locate(key)
+
+    def test_non_instance_dependency_lifetime_can_be_located(self):
+        dependency_instance = dependency(dependency_lifetime=DependencyLifetimeEnum.SESSION)
+        test = "test"
+        l = lambda: test
+        dependency_instance(l)
+        key = DependencyLifetimeKey(l)
+        key.init_dependency_lifetime(DependencyLifetimeEnum.SESSION)
+        assert dependency_instance.locate(key) == test
+        assert test in [item[1] for item in dependency_instance.services.items()]
