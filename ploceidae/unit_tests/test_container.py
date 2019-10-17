@@ -4,6 +4,8 @@ from six import with_metaclass
 import pytest
 
 from ploceidae.dependency_lifetime.dependency_lifetime_enum import DependencyLifetimeEnum
+from ploceidae.utilities.visibility_enum import VisibilityEnum
+
 
 class Dummy(object):
     def __init__(self, a, b, c):
@@ -32,7 +34,7 @@ class TestContainer(object):
         assert "abcbcc" == wired
 
     def test_partial_wire_up_dependencies_works_when_dependencies_to_ignore_is_empty(self, object_to_wire_up, container):
-        wired = container.partial_wire_dependencies(object_to_wire_up.dependency_object)
+        wired = container.partially_wire_dependencies(object_to_wire_up.dependency_object)
         assert "xabcbcc" == wired()
 
     # make sure that exceptions bubble up
@@ -65,7 +67,7 @@ class TestContainer(object):
             assert b == "bc"
 
         try:
-            partially_wired = partial_dependency_fixture.container.partial_wire_dependencies(expect_specific_types, *partial_dependency_fixture.ignored_dependencies)
+            partially_wired = partial_dependency_fixture.container.partially_wire_dependencies(expect_specific_types, *partial_dependency_fixture.ignored_dependencies)
         except Exception as ex:
             pytest.fail(". Ex {0}".format(ex))
         else:
@@ -73,7 +75,7 @@ class TestContainer(object):
 
     def test_partial_wire_up_dependencies_to_instance_obj(self, partial_dependency_fixture):
         try:
-            partial_wired = partial_dependency_fixture.container.partial_wire_dependencies(Dummy("a", "b", "c").method, *partial_dependency_fixture.ignored_dependencies)
+            partial_wired = partial_dependency_fixture.container.partially_wire_dependencies(Dummy("a", "b", "c").method, *partial_dependency_fixture.ignored_dependencies)
         except Exception as ex:
             pytest.fail(". Ex {0}".format(ex))
         else:
@@ -81,7 +83,7 @@ class TestContainer(object):
         assert obj == "abcbcc"
 
     def test_wire_up_dependencies_with_dynamically_generated_methods(self, default_container, dependency_decorator):
-        @dependency_decorator(global_dependency=True)
+        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
         def inner_a(): return "a"
 
         class A(object): pass
@@ -96,7 +98,7 @@ class TestContainer(object):
 
     @pytest.mark.skip(reason="not supported")
     def test_wire_up_dependencies_with_class_introspection_generated_method(self, default_container, dependency_decorator):
-        @dependency_decorator(global_dependency=True)
+        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
         def inner_a(): return "a"
 
         class A(object): pass
@@ -109,30 +111,30 @@ class TestContainer(object):
         assert "a" == default_container.wire_dependencies(A.method) == default_container.wire_dependencies(A.staticmethod) == default_container.wire_dependencies(A.classmethod)
 
     def test_partial_wire_up_dependencies_gets_correct_value_with_instance_dependency_lifetime_when_later_call_to_wire_up(self, dependency_decorator, default_container):
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS, global_dependency=True)
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.CLASS, visibility=VisibilityEnum.GLOBAL)
         def conflict(): return WireUp()
 
         class WireUp:
             def method(self, conflict):
                 return conflict
 
-        partially_wired = default_container.partial_wire_dependencies(WireUp().method)
+        partially_wired = default_container.partially_wire_dependencies(WireUp().method)
         assert default_container.wire_dependencies(WireUp().method) is partially_wired()
 
     def test_mixed_dependency_lifetime(self, dependency_decorator, default_container):
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.MODULE)
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.MODULE)
         def a(): return type("A", (), {})()
 
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS)
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.CLASS)
         def b(): return type("B", (), {})()
 
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE)
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.INSTANCE)
         def c(): return type("C", (), {})()
 
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.SESSION)
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.SESSION)
         def d(): return type("D", (), {})()
 
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.FUNCTION)
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION)
         def e(): return type("E", (), {})()
 
         # need a more robust way of testing this
@@ -163,12 +165,12 @@ class TestContainer(object):
             default_container.wire_dependencies(instance.x)
 
     def test_wire_up_dependencies_with_instance_introspection_generated_method(self, default_container, dependency_decorator):
-        # test two instances that generate the same methods, class dependency_lifetime should get the same, instance and below should not
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS, global_dependency=True)
+        # test two instances that generate the same methods, class lifetime should get the same, instance and below should not
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.CLASS, visibility=VisibilityEnum.GLOBAL)
         def introspection_class_test():
             return type("Class", (), {})
 
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE, global_dependency=True)
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.INSTANCE, visibility=VisibilityEnum.GLOBAL)
         def introspection_instance_test():
             return type("Instance", (), {})
 
@@ -187,12 +189,12 @@ class TestContainer(object):
 
     @pytest.mark.skip(reason="lambda can't get __self__.__class__")
     def test_wire_up_dependencies_with_instance_introspection_incorrectly_generated_method(self, container_constructor, dependency_decorator):
-        # test two instances that generate the same methods, class dependency_lifetime should get the same, instance and below should not
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.CLASS, global_dependency=True)
+        # test two instances that generate the same methods, class lifetime should get the same, instance and below should not
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.CLASS, visibility=VisibilityEnum.GLOBAL)
         def introspection_class_test():
             return type("Class", (), {})
 
-        @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.INSTANCE, global_dependency=True)
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.INSTANCE, visibility=VisibilityEnum.GLOBAL)
         def introspection_instance_test():
             return type("Instance", (), {})
 
@@ -210,7 +212,7 @@ class TestContainer(object):
         assert first_instance is not second_instance
 
     def test_wire_up_dependencies_with_metaclass_generated_methods(self, default_container, dependency_decorator):
-        @dependency_decorator(global_dependency=True)
+        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
         def meta_test():
             return meta_test.__name__
 
@@ -225,7 +227,7 @@ class TestContainer(object):
         assert default_container.wire_dependencies(A().method) == meta_test.__name__
 
     def test_wire_up_dependencies_to_staticmethod_from_getattr(self, default_container, dependency_decorator):
-        @dependency_decorator(global_dependency=True)
+        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
         def staticmethod_getattr_test():
             return staticmethod_getattr_test.__name__
 
@@ -236,7 +238,7 @@ class TestContainer(object):
         assert default_container.wire_dependencies(getattr(A, "s")) == staticmethod_getattr_test.__name__
 
     def test_wire_up_dependencies_to_classmethod_from_getattr(self, default_container, dependency_decorator):
-        @dependency_decorator(global_dependency=True)
+        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
         def classmethod_getattr_test():
             return classmethod_getattr_test.__name__
 
@@ -247,7 +249,7 @@ class TestContainer(object):
         assert default_container.wire_dependencies(getattr(A, "c")) == classmethod_getattr_test.__name__
 
     def test_wire_up_dependencies_to_instance_method_from_getattr(self, default_container, dependency_decorator):
-        @dependency_decorator(global_dependency=True)
+        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
         def instance_method_getattr_test():
             return instance_method_getattr_test.__name__
 
@@ -257,7 +259,7 @@ class TestContainer(object):
         assert default_container.wire_dependencies(getattr(A(), "i")) == instance_method_getattr_test.__name__
 
     def test_wire_up_dependencies_to_dereferenced_classmethod(self, default_container, dependency_decorator):
-        @dependency_decorator(global_dependency=True)
+        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
         def classmethod_test():
             return classmethod_test.__name__
 
@@ -268,7 +270,7 @@ class TestContainer(object):
         assert default_container.wire_dependencies(A.c) == classmethod_test.__name__
 
     def test_wire_up_dependencies_to_staticmethod(self, default_container, dependency_decorator):
-        @dependency_decorator(global_dependency=True)
+        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
         def static_dereference_test():
             return static_dereference_test.__name__
 
@@ -280,7 +282,7 @@ class TestContainer(object):
 
     @pytest.mark.skip(reason="will fail because the class reference will not be resolved to dereferenced function")
     def test_wire_up_dependencies_to_dereferenced_classmethod(self, default_container, dependency_decorator):
-        @dependency_decorator(global_dependency=True)
+        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
         def dereferenced_test():
             return dereferenced_test.__name__
 
@@ -292,7 +294,7 @@ class TestContainer(object):
         assert default_container.wire_dependencies(A.__dict__["c"].__func__) == dereferenced_test.__name__
 
     def test_wire_up_dependencies_to_dereferenced_staticmethod(self, default_container, dependency_decorator):
-        @dependency_decorator(global_dependency=True)
+        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
         def dereferenced_test():
             return dereferenced_test.__name__
 
@@ -313,7 +315,7 @@ class TestContainer(object):
     def test_wire_up_dependencies_to_dependency_with_missing_dependency(self, default_container, dependency_decorator):
         # we can't validate dependencies before actual dependency resolution, because we might add a dependency
         # after something declares it in its argument list
-        @dependency_decorator(global_dependency=True)
+        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
         def a(b): pass
 
         default_container.wire_dependencies(a)
@@ -321,10 +323,10 @@ class TestContainer(object):
     @pytest.mark.xfail(raises=BaseException)
     def test_wire_up_dependencies_with_missing_terminal_node(self, default_container, dependency_decorator):
 
-        @dependency_decorator(global_dependency=True)
+        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
         def x(y): pass
 
-        @dependency_decorator(global_dependency=True)
+        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
         def y(not_exist): pass
 
         def test(x): pass

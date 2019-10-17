@@ -10,12 +10,12 @@ class DependencyLocator(object):
 
     def __init__(self, garbage_collection_observer, dependency_lifetime, dependency_object):
         self.garbage_collection_observer = garbage_collection_observer
-        self.dependency_lifetime = dependency_lifetime
+        self.lifetime = dependency_lifetime
         self.services = {}
         self.dependency_object = dependency_object
 
     def locate(self, dependency_lifetime_key, *resolved_dependencies):
-        dependency_lifetime_key.init_dependency_lifetime(self.dependency_lifetime)
+        dependency_lifetime_key.init_dependency_lifetime(self.lifetime)
         dependency_lifetime_key_string = str(dependency_lifetime_key)
         logger.debug("locating service {0} on dependency {1}".format(str(dependency_lifetime_key), self.dependency_object))
         # need to check alt_key because __init__ and possibly other methods won't get instance until wired but
@@ -28,13 +28,13 @@ class DependencyLocator(object):
                 raise KeyError
         except KeyError:
             resolved_dependencies = self.dependency_object(*resolved_dependencies)
-            if self.dependency_lifetime != DependencyLifetimeEnum.FUNCTION:
+            if self.lifetime != DependencyLifetimeEnum.FUNCTION:
                 self.services[dependency_lifetime_key_string] = resolved_dependencies
             return resolved_dependencies
 
     def replace_alt_keys_with_valid_dependency_lifetime_from_instance(self, instance, object_to_wire_up, time_stamp):
-        # all this "instance issue stuff" has to do with delivering to an __init__; with an instance dependency_lifetime with an __init__,
-        # the issue is that the instance doesn't exist until __init__ is called, thus the dependency_lifetime key must be replaced at a latter time
+        # all this "instance issue stuff" has to do with delivering to an __init__; with an instance lifetime with an __init__,
+        # the issue is that the instance doesn't exist until __init__ is called, thus the lifetime key must be replaced at a latter time
         dependency_lifetime_key_string = DependencyLifetimeKey.generate_alt_dependency_lifetime_key(object_to_wire_up, DependencyLifetimeEnum.INSTANCE, time_stamp)
         new_dependency_lifetime_key = DependencyLifetimeKey(instance)
         new_dependency_lifetime_key.init_dependency_lifetime(DependencyLifetimeEnum.INSTANCE)
@@ -47,7 +47,7 @@ class DependencyLocator(object):
                 self.services[new_dependency_lifetime_key_string] = service
                 del self.services[dependency_lifetime_key_string]
                 del new_dependency_lifetime_key
-                # only for instance dependency_lifetime do we care about how long lived the objects are so we set a callback in the gc module
+                # only for instance lifetime do we care about how long lived the objects are so we set a callback in the gc module
                 self.garbage_collection_observer.register(self.generate_callback_from_instance(instance, service, new_dependency_lifetime_key_string))
 
     def generate_callback_from_instance(self, instance, service, dependency_lifetime_key_string):

@@ -3,3 +3,4 @@ six
 PyMonad
 pytest
 pytest-mock
+trochilidae

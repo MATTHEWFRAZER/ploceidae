@@ -4,7 +4,7 @@ from ploceidae.constants import BINDINGS
 from ploceidae.dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
 
 class DependencyHelperMethods(object):
-    VALID_KWARGS = ("dependency_lifetime", "group", "global_dependency")
+    VALID_KWARGS = ("lifetime", "group", "visibility")
 
     @classmethod
     def input_validation_for_dependency_object(cls, decorated_object):
@@ -31,13 +31,13 @@ class DependencyHelperMethods(object):
 
     @classmethod
     def input_validation_to_init(cls, kwargs):
-        if not cls.kwargs_are_valid(kwargs):
-            invalid_keys = pformat([keyword for keyword in kwargs.keys() if not cls.is_valid_keyword(keyword)])
-            raise ValueError("the following key word arguments are invalid: \n{0}".format(invalid_keys))
-
-    @classmethod
-    def kwargs_are_valid(cls, kwargs):
-        return all(cls.is_valid_keyword(key) for key in kwargs.keys())
+        invalid_keys = []
+        for keyword in kwargs.keys():
+            if not cls.is_valid_keyword(keyword):
+                invalid_keys.append(keyword)
+        if invalid_keys:
+            invalid_keys_string = pformat(invalid_keys)
+            raise ValueError("the following key word arguments are invalid: \n{0}".format(invalid_keys_string))
 
     @classmethod
     def is_valid_keyword(cls, keyword):
