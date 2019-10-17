@@ -3,7 +3,7 @@ import logging
 
 from ploceidae.constants import BINDINGS
 from ploceidae.utilities.common import DEPENDENCY_GRAPH_MANAGER
-from ploceidae.utilities.visibility_enum import VisibilityEnum
+from ploceidae.utilities.dependency_visibility_enum import DependencyVisibilityEnum
 from ploceidae.dependency.dependency_helper_methods import DependencyHelperMethods
 from ploceidae.dependency.dependency_locator import DependencyLocator
 from ploceidae.dependency.garbage_collection.garbage_collection_observer import GarbageCollectionObserver
@@ -61,7 +61,7 @@ class DependencyWrapper(DependencyLocator, DependencyHelperMethods):
         return nested
 
     @classmethod
-    def get_dependency_without_decoration(cls, dependency_object, visibility=VisibilityEnum.Module):
+    def get_dependency_without_decoration(cls, dependency_object, visibility=DependencyVisibilityEnum.Module):
         dependency = cls(visibility=visibility)
         dependency.init_dependency_inner(dependency_object)
         return dependency

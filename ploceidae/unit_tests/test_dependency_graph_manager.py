@@ -8,7 +8,7 @@ from ploceidae.dependency_lifetime.dependency_lifetime_key import DependencyLife
 from ploceidae.dependency_graph_manager.cache_item import CacheItem
 from ploceidae.dependency_graph_manager.dependency_graph import DependencyGraph
 from ploceidae.constants import GLOBAL_NAMESPACE
-from ploceidae.utilities.visibility_enum import VisibilityEnum
+from ploceidae.utilities.dependency_visibility_enum import DependencyVisibilityEnum
 
 
 class TestDependencyGraphManager(object):
@@ -64,7 +64,7 @@ class TestDependencyGraphManager(object):
 
     def test_add_depenendency_with_callable(self, default_dependency_graph_manager):
         l = DependencyWrapper.get_dependency_without_decoration(lambda _:_)
-        default_dependency_graph_manager.add_dependency(l, visibility=VisibilityEnum.GLOBAL)
+        default_dependency_graph_manager.add_dependency(l, visibility=DependencyVisibilityEnum.GLOBAL)
         assert len(default_dependency_graph_manager.dependency_graph) == 1
 
     @pytest.mark.xfail(raises=ValueError)
@@ -81,7 +81,7 @@ class TestDependencyGraphManager(object):
         dependency_lifetime_key = self.dependency_lifetime_key_init(dependency_graph[-1], DependencyLifetimeEnum.FUNCTION, datetime.now())
         dependency_lifetime_key2 = self.dependency_lifetime_key_init(dependency_graph[-2], DependencyLifetimeEnum.FUNCTION, datetime.now())
         assert not default_dependency_graph_manager.resolve_dependencies(dependency_graph[-1], dependency_lifetime_key).all_resolved_dependencies
-        default_dependency_graph_manager.add_dependency(dependency_graph[-1], visibility=VisibilityEnum.GLOBAL)
+        default_dependency_graph_manager.add_dependency(dependency_graph[-1], visibility=DependencyVisibilityEnum.GLOBAL)
         assert default_dependency_graph_manager.resolve_dependencies(dependency_graph[-2], dependency_lifetime_key2).resolved_dependencies[0] == dependency_graph[-1].dependency_object.__name__
 
     def test_resolve_dependencies_with_dependent_that_has_no_dependencies(self, dependency_graph, default_dependency_graph_manager):
@@ -103,7 +103,7 @@ class TestDependencyGraphManager(object):
         # after something declares it in its argument list
         def a(b): pass
 
-        default_dependency_graph_manager.add_dependency(DependencyWrapper.get_dependency_without_decoration(a), visibility=VisibilityEnum.GLOBAL)
+        default_dependency_graph_manager.add_dependency(DependencyWrapper.get_dependency_without_decoration(a), visibility=DependencyVisibilityEnum.GLOBAL)
         default_dependency_graph_manager.resolve_dependencies(a, DependencyLifetimeKey(a))
 
     @pytest.mark.xfail(raises=BaseException)
@@ -115,8 +115,8 @@ class TestDependencyGraphManager(object):
 
         def test(x): pass
 
-        default_dependency_graph_manager.add_dependency(DependencyWrapper.get_dependency_without_decoration(x), visibility=VisibilityEnum.GLOBAL)
-        default_dependency_graph_manager.add_dependency(DependencyWrapper.get_dependency_without_decoration(y), visibility=VisibilityEnum.GLOBAL)
+        default_dependency_graph_manager.add_dependency(DependencyWrapper.get_dependency_without_decoration(x), visibility=DependencyVisibilityEnum.GLOBAL)
+        default_dependency_graph_manager.add_dependency(DependencyWrapper.get_dependency_without_decoration(y), visibility=DependencyVisibilityEnum.GLOBAL)
         default_dependency_graph_manager.resolve_dependencies(test, DependencyLifetimeKey(test))
 
     @classmethod
@@ -129,7 +129,7 @@ class TestDependencyGraphManager(object):
     @classmethod
     def add_dependencies(cls, dependency_graph_manager, *dependencies):
         for dependency in dependencies:
-            dependency_graph_manager.add_dependency(dependency, visibility=VisibilityEnum.GLOBAL)
+            dependency_graph_manager.add_dependency(dependency, visibility=DependencyVisibilityEnum.GLOBAL)
 
     @staticmethod
     def dependency_lifetime_key_init(obj, lifetime, time_stamp):

@@ -4,7 +4,7 @@ from ploceidae.dependency_graph_manager.dependency_graph_cycle_check_methods imp
 from ploceidae.dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
 from ploceidae.dependency_graph_manager.cache_item import CacheItem
 from ploceidae.dependency_graph_manager.resolved_dependencies import ResolvedDependencies
-from ploceidae.utilities.visibility_enum import VisibilityEnum
+from ploceidae.utilities.dependency_visibility_enum import DependencyVisibilityEnum
 
 
 class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolutionMethods):
@@ -13,7 +13,7 @@ class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolut
         self.dependency_graph = dependency_graph
         self.lock = Lock()
 
-    def add_dependency(self, dependency_wrapper, visibility=VisibilityEnum.Module):
+    def add_dependency(self, dependency_wrapper, visibility=DependencyVisibilityEnum.Module):
         cache_item = CacheItem.cache_item_factory_method(dependency_wrapper, visibility)
         with self.lock:
             if cache_item in self.dependency_graph:

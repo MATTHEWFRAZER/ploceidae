@@ -5,12 +5,12 @@ import pytest
 
 from ploceidae.dependency_graph_manager.cache_item import CacheItem
 from ploceidae.constants import GLOBAL_NAMESPACE
-from ploceidae.utilities.visibility_enum import VisibilityEnum
+from ploceidae.utilities.dependency_visibility_enum import DependencyVisibilityEnum
 
 
 class TestDependency:
 
-    @pytest.mark.parametrize("global_visibility,global_visibility2", product([VisibilityEnum.GLOBAL, VisibilityEnum.Module], repeat=2))
+    @pytest.mark.parametrize("global_visibility,global_visibility2", product([DependencyVisibilityEnum.GLOBAL, DependencyVisibilityEnum.Module], repeat=2))
     def test_duplicate_dependency_name_with_different_dependency_resolution_scheme(self, global_visibility, global_visibility2, dependency_decorator):
         @dependency_decorator(visibility=global_visibility)
         def a(): pass
@@ -143,7 +143,7 @@ class TestDependency:
                 return func(b)
             return nested
 
-        @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
+        @dependency_decorator(visibility=DependencyVisibilityEnum.GLOBAL)
         def b():
             return "b"
 
