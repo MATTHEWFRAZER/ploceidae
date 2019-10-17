@@ -5,7 +5,7 @@ import sys
 import pytest
 
 from ploceidae.dependency_graph_manager.dependency_graph import DependencyGraph
-from ploceidae.utilities.visibility_enum import VisibilityEnum
+from ploceidae.utilities.dependency_visibility_enum import DependencyVisibilityEnum
 
 sys.path.append("..")
 from ploceidae.dependency_graph_manager import DependencyGraphManager
@@ -66,7 +66,7 @@ def dependency_graph_node_with_no_in_edges(dependency_init):
 
 @pytest.fixture
 def dependency_init():
-    return partial(DependencyWrapper.get_dependency_without_decoration, visibility=VisibilityEnum.GLOBAL)
+    return partial(DependencyWrapper.get_dependency_without_decoration, visibility=DependencyVisibilityEnum.GLOBAL)
 
 @pytest.fixture
 def dummy():
@@ -77,7 +77,7 @@ def object_to_resolve(dependency_decorator, default_dependency_graph_manager):
 
     #TODO: HACK ALERT
     dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER = default_dependency_graph_manager
-    @dependency_decorator(lifetime=DependencyLifetimeEnum.MODULE, visibility=VisibilityEnum.GLOBAL)
+    @dependency_decorator(lifetime=DependencyLifetimeEnum.MODULE, visibility=DependencyVisibilityEnum.GLOBAL)
     def a():
         return Dummy()
     return a
@@ -95,7 +95,7 @@ def resolved_object(object_to_resolve, dependency_decorator, default_container):
 def container(dependency_graph_with_object_that_depends_on_all_other_nodes):
     dependency_graph_manager = DependencyGraphManager(DependencyGraph())
     for dependency in dependency_graph_with_object_that_depends_on_all_other_nodes:
-        dependency_graph_manager.add_dependency(dependency, visibility=VisibilityEnum.GLOBAL)
+        dependency_graph_manager.add_dependency(dependency, visibility=DependencyVisibilityEnum.GLOBAL)
     container = Container(dependency_graph_manager)
     return container
 
@@ -106,19 +106,19 @@ def default_container(default_dependency_graph_manager):
 @pytest.fixture
 def container2(dependency_graph2, dependency_graph_with_object_that_depends_on_all_other_nodes, default_dependency_graph_manager):
     for dependency in chain.from_iterable((dependency_graph2, dependency_graph_with_object_that_depends_on_all_other_nodes)):
-        default_dependency_graph_manager.add_dependency(dependency, visibility=VisibilityEnum.GLOBAL)
+        default_dependency_graph_manager.add_dependency(dependency, visibility=DependencyVisibilityEnum.GLOBAL)
     container = Container(default_dependency_graph_manager)
     return container
 
 @pytest.fixture
 def multiple_module_setup_with_global(dependency_decorator):
-    @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
+    @dependency_decorator(visibility=DependencyVisibilityEnum.GLOBAL)
     def b():
         return "global b"
 
 @pytest.fixture
 def multiple_module_setup_with_global_c(dependency_decorator):
-    @dependency_decorator(visibility=VisibilityEnum.GLOBAL)
+    @dependency_decorator(visibility=DependencyVisibilityEnum.GLOBAL)
     def c():
         return "global c"
 
