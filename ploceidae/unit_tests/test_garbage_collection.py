@@ -6,7 +6,7 @@ from ploceidae.dependency_lifetime.dependency_lifetime_enum import DependencyLif
 
 class TestGarbageCollection:
     def test_instance_resolved_dependency_is_cleaned_up_when_instance_is_cleaned_up(self, container):
-        d = dependency(dependency_lifetime=DependencyLifetimeEnum.INSTANCE)
+        d = dependency(lifetime=DependencyLifetimeEnum.INSTANCE)
         @d
         def a():
             return type("A", (), {})()
@@ -22,7 +22,7 @@ class TestGarbageCollection:
         assert not d.services
 
     def test_instance_resolved_dependency_is_cleaned_up_when_instance_is_cleaned_up_two(self, container):
-        d = dependency(dependency_lifetime=DependencyLifetimeEnum.INSTANCE)
+        d = dependency(lifetime=DependencyLifetimeEnum.INSTANCE)
         @d
         def a():
             return type("A", (), {})()

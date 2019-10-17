@@ -5,14 +5,14 @@ from ploceidae.dependency_lifetime.dependency_lifetime_key import DependencyLife
 class TestDependencyLocation:
 
     def test_function_dependency_lifetime(self):
-        dependency_instance = dependency(dependency_lifetime=DependencyLifetimeEnum.FUNCTION)
+        dependency_instance = dependency(lifetime=DependencyLifetimeEnum.FUNCTION)
         l = lambda: type("T", (), {})
         dependency_instance(l)
         key = DependencyLifetimeKey(l)
         assert dependency_instance.locate(key) != dependency_instance.locate(key)
 
     def test_non_instance_dependency_lifetime_can_be_located(self):
-        dependency_instance = dependency(dependency_lifetime=DependencyLifetimeEnum.SESSION)
+        dependency_instance = dependency(lifetime=DependencyLifetimeEnum.SESSION)
         test = "test"
         l = lambda: test
         dependency_instance(l)

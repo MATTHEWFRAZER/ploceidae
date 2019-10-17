@@ -1,6 +1,7 @@
 Ploceidae (https://en.wikipedia.org/wiki/Ploceidae) is the family name of birds that weave intricate nests not unlike how this framework wires together intricate dependency graphs. Ploceidae is heavily influenced by pytest fixtures and follows the same decoration declares a dependency paradigm.
 
-##Terminology:
+**Terminology:**
+
 **container:** a class that is used to resolve and wire up dependencies to a dependent object (see example 3)
 
 **dependency:** the name of a decorator that is used to register ploceidae dependencies (see example 1)
@@ -17,7 +18,8 @@ Ploceidae (https://en.wikipedia.org/wiki/Ploceidae) is the family name of birds 
 
 **group:** a list of dependencies that have been resolved under the same tag (see examples 5, 6, 7)
 
-##Examples
+**Examples**
+
 **example 1 (how to declare a dependency):**
 ```python
 from ploceidae.dependency import dependency

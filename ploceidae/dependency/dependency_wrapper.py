@@ -18,12 +18,12 @@ class DependencyWrapper(DependencyLocator, DependencyHelperMethods):
 
     def __init__(self, **kwargs):
         """
-        :param kwargs: dependency_lifetime determines how the dependency is delivered (if we cache it or not), allows for grouping dependencies,
+        :param kwargs: lifetime determines how the dependency is delivered (if we cache it or not), allows for grouping dependencies,
         visibility determines the visibility of dependency (True means dependency is visible independent of its module position)
         """
         # super does get called... in this method
         self.input_validation_to_init(kwargs)
-        self.dependency_lifetime = kwargs.get("dependency_lifetime", "function")
+        self.lifetime = kwargs.get("lifetime", "function")
         self.group = kwargs.get("group")
         self.visibility = kwargs.get("visibility")
         self.callbacks = []
@@ -48,7 +48,7 @@ class DependencyWrapper(DependencyLocator, DependencyHelperMethods):
         return dependency_object
 
     def init_dependency_inner(self, dependency_object):
-        super(DependencyWrapper, self).__init__(self.GARBAGE_COLLECTION_OBSERVER, self.dependency_lifetime, dependency_object)
+        super(DependencyWrapper, self).__init__(self.GARBAGE_COLLECTION_OBSERVER, self.lifetime, dependency_object)
         self.dependencies = self.get_dependencies_from_callable_object(dependency_object, *BINDINGS)
         self.dependency_name = dependency_object.__name__
 

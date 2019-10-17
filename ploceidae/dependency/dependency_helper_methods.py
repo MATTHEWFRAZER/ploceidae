@@ -4,7 +4,7 @@ from ploceidae.constants import BINDINGS
 from ploceidae.dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
 
 class DependencyHelperMethods(object):
-    VALID_KWARGS = ("dependency_lifetime", "group", "visibility")
+    VALID_KWARGS = ("lifetime", "group", "visibility")
 
     @classmethod
     def input_validation_for_dependency_object(cls, decorated_object):

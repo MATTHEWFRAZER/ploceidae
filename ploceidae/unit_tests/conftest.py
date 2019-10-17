@@ -77,7 +77,7 @@ def object_to_resolve(dependency_decorator, default_dependency_graph_manager):
 
     #TODO: HACK ALERT
     dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER = default_dependency_graph_manager
-    @dependency_decorator(dependency_lifetime=DependencyLifetimeEnum.MODULE, visibility=VisibilityEnum.GLOBAL)
+    @dependency_decorator(lifetime=DependencyLifetimeEnum.MODULE, visibility=VisibilityEnum.GLOBAL)
     def a():
         return Dummy()
     return a
