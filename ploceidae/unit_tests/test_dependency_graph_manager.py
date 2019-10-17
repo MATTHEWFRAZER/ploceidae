@@ -132,8 +132,8 @@ class TestDependencyGraphManager(object):
             dependency_graph_manager.add_dependency(dependency, visibility=VisibilityEnum.GLOBAL)
 
     @staticmethod
-    def dependency_lifetime_key_init(obj, dependency_lifetime, time_stamp):
+    def dependency_lifetime_key_init(obj, lifetime, time_stamp):
         dependency_lifetime_key = DependencyLifetimeKey(obj)
-        dependency_lifetime_key.init_dependency_lifetime(dependency_lifetime)
+        dependency_lifetime_key.init_dependency_lifetime(lifetime)
         dependency_lifetime_key.init_alt_key(time_stamp)
         return dependency_lifetime_key

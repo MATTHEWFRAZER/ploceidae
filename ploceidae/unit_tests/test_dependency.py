@@ -170,7 +170,7 @@ class TestDependency:
 
     def test_dependency_application_with_dependency_lifetime_passed_as_argument(self, dependency_decorator):
         try:
-            @dependency_decorator(dependency_lifetime="function")
+            @dependency_decorator(lifetime="function")
             def a(): pass
         except Exception as ex:
             pytest.fail("could not decorate function. Ex: {0}".format(ex))
