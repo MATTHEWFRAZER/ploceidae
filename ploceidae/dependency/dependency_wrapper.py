@@ -3,6 +3,7 @@ import logging
 
 from ploceidae.constants import BINDINGS
 from ploceidae.utilities.common import DEPENDENCY_GRAPH_MANAGER
+from ploceidae.utilities.visibility_enum import VisibilityEnum
 from ploceidae.dependency.dependency_helper_methods import DependencyHelperMethods
 from ploceidae.dependency.dependency_locator import DependencyLocator
 from ploceidae.dependency.garbage_collection.garbage_collection_observer import GarbageCollectionObserver
@@ -18,13 +19,13 @@ class DependencyWrapper(DependencyLocator, DependencyHelperMethods):
     def __init__(self, **kwargs):
         """
         :param kwargs: dependency_lifetime determines how the dependency is delivered (if we cache it or not), allows for grouping dependencies,
-        global_dependency determines the visibility of dependency (True means dependency is visible independent of its module position)
+        visibility determines the visibility of dependency (True means dependency is visible independent of its module position)
         """
         # super does get called... in this method
         self.input_validation_to_init(kwargs)
         self.dependency_lifetime = kwargs.get("dependency_lifetime", "function")
         self.group = kwargs.get("group")
-        self.global_dependency = kwargs.get("global_dependency")
+        self.visibility = kwargs.get("visibility")
         self.callbacks = []
 
     def __call__(self, dependency_object):
@@ -41,7 +42,7 @@ class DependencyWrapper(DependencyLocator, DependencyHelperMethods):
         self.dependencies = dependencies
         try:
             logger.info("adding dependency to dependency graph")
-            self.DEPENDENCY_GRAPH_MANAGER.add_dependency(self, self.global_dependency)
+            self.DEPENDENCY_GRAPH_MANAGER.add_dependency(self, self.visibility)
         except ValueError as ex:
             logger.error("problem with adding dependency to dependency graph: {}".format(ex))
         return dependency_object
@@ -60,8 +61,8 @@ class DependencyWrapper(DependencyLocator, DependencyHelperMethods):
         return nested
 
     @classmethod
-    def get_dependency_without_decoration(cls, dependency_object, global_dependency=None):
-        dependency = cls(global_dependency=global_dependency)
+    def get_dependency_without_decoration(cls, dependency_object, visibility=VisibilityEnum.Module):
+        dependency = cls(visibility=visibility)
         dependency.init_dependency_inner(dependency_object)
         return dependency
 
