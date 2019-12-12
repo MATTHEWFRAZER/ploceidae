@@ -38,7 +38,7 @@ class DependencyLocator(object):
         dependency_lifetime_key_string = DependencyLifetimeKey.generate_alt_dependency_lifetime_key(object_to_wire_up, DependencyLifetimeEnum.INSTANCE, time_stamp)
         new_dependency_lifetime_key = DependencyLifetimeKey(instance)
         new_dependency_lifetime_key.init_dependency_lifetime(DependencyLifetimeEnum.INSTANCE)
-        for key, _ in self.services.items():
+        for key, _ in self.services.copy().items():
             logger.info("key {0} ==== key string {1}".format(key, dependency_lifetime_key_string))
             if key == dependency_lifetime_key_string:
                 logger.debug("replacing alt key {0} with new key {1}".format(dependency_lifetime_key_string, str(new_dependency_lifetime_key)))
