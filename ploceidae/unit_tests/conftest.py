@@ -1,27 +1,70 @@
+import attr
 from functools import partial
 from itertools import chain
-import sys
 
 import pytest
 
-from ploceidae.dependency_graph_manager.dependency_graph import DependencyGraph
+from ploceidae.dependency_management import DependencyGraphManager
+from ploceidae.dependency_management.dependency_graph import DependencyGraph
 from ploceidae.utilities.dependency_visibility_enum import DependencyVisibilityEnum
 
-sys.path.append("..")
-from ploceidae.dependency_graph_manager import DependencyGraphManager
-from ploceidae.container import Container
-from ploceidae.dependency import DependencyWrapper
-from ploceidae.dependency import dependency
+#sys.path.append("..")
+from ploceidae.dependency.dependency_wrapper import DependencyWrapper
+from ploceidae.core.configurators.basic_configurator import BasicConfigurator
 from ploceidae.dependency_lifetime.dependency_lifetime_enum import DependencyLifetimeEnum
 
 class Dummy(): pass
 
+@attr.s
+class ResolvedDependencyGraphContext(object):
+    dependency_graph_manager  = attr.ib()
+    resolved_dependency_graph = attr.ib()
+
+    @classmethod
+    def get_instance(cls, dependency_graph_manager, dependency_graph):
+        resolved_dependency_graph = (dependency(dependency_graph_manager=dependency_graph_manager) for dependency in dependency_graph)
+        return cls(dependency_graph_manager, resolved_dependency_graph)
+
+@attr.s
+class ResolvedObjectToWireUpContext(object):
+    resolved_object_to_wire_up = attr.ib()
+    container                  = attr.ib()
+
+
+@pytest.fixture
+def basic_configurator():
+    basic_configurator = BasicConfigurator()
+    yield basic_configurator
+    basic_configurator.dependency_graph_manager.dependency_graph.clear()
+
 @pytest.fixture
 def default_dependency_graph_manager():
     dependency_graph_manager = DependencyGraphManager(DependencyGraph())
-    DependencyWrapper.DEPENDENCY_GRAPH_MANAGER = dependency_graph_manager
     yield dependency_graph_manager
     dependency_graph_manager.dependency_graph.clear()
+
+
+@pytest.fixture
+def configurator_with_dependency_nodes(resolved_dependency_graph_with_object_that_depends_on_all_other_nodes_context):
+    resolved_dependency_graph = resolved_dependency_graph_with_object_that_depends_on_all_other_nodes_context.resolved_dependency_graph
+    dependency_graph_manager  = resolved_dependency_graph_with_object_that_depends_on_all_other_nodes_context.dependency_graph_manager
+    for dependency in resolved_dependency_graph:
+        dependency_graph_manager.add_dependency(dependency)
+    configurator = BasicConfigurator()
+    configurator.dependency_graph_manager = dependency_graph_manager
+    yield configurator
+    configurator.dependency_graph_manager.dependency_graph.clear()
+
+@pytest.fixture
+def configurator_with_dependency_nodes2(resolved_dependency_graph_with_object_that_depends_on_all_other_nodes_context2):
+    resolved_dependency_graph = resolved_dependency_graph_with_object_that_depends_on_all_other_nodes_context2.resolved_dependency_graph
+    dependency_graph_manager  = resolved_dependency_graph_with_object_that_depends_on_all_other_nodes_context2.dependency_graph_manager
+    for dependency in resolved_dependency_graph:
+        dependency_graph_manager.add_dependency(dependency)
+    configurator = BasicConfigurator()
+    configurator.dependency_graph_manager = dependency_graph_manager
+    yield configurator
+    configurator.dependency_graph_manager.dependency_graph.clear()
 
 @pytest.fixture
 def dependency_graph_with_cycle(dependency_init):
@@ -30,8 +73,11 @@ def dependency_graph_with_cycle(dependency_init):
     def b(c): pass
     def c(a): pass
 
-    return dependency_init(a), dependency_init(b), dependency_init(c)
+    return partial(dependency_init, dependency_object=a), partial(dependency_init, dependency_object=b), partial(dependency_init, dependency_object=c)
 
+@pytest.fixture
+def resolved_dependency_graph_with_cycle_context(default_dependency_graph_manager, dependency_graph_with_cycle):
+    return ResolvedDependencyGraphContext.get_instance(default_dependency_graph_manager, dependency_graph_with_cycle)
 
 @pytest.fixture
 def dependency_graph(dependency_init):
@@ -39,7 +85,11 @@ def dependency_graph(dependency_init):
     def b(c): return "b" + c
     def c(): return "c"
 
-    return dependency_init(a), dependency_init(b), dependency_init(c)
+    return partial(dependency_init, dependency_object=a), partial(dependency_init, dependency_object=b), partial(dependency_init, dependency_object=c)
+
+@pytest.fixture
+def resolved_dependency_graph_context(default_dependency_graph_manager, dependency_graph):
+    return ResolvedDependencyGraphContext.get_instance(default_dependency_graph_manager, dependency_graph)
 
 @pytest.fixture
 def dependency_graph2(dependency_init):
@@ -47,22 +97,40 @@ def dependency_graph2(dependency_init):
     def e(f): return "e" + f
     def f(): return "f"
 
-    return dependency_init(d), dependency_init(e), dependency_init(f)
+    return partial(dependency_init, dependency_object=d), partial(dependency_init, dependency_object=e), partial(dependency_init, dependency_object=f)
 
+@pytest.fixture
+def resolved_dependency_graph2_context(default_dependency_graph_manager, dependency_graph2):
+    return ResolvedDependencyGraphContext.get_instance(default_dependency_graph_manager, dependency_graph2)
 
 @pytest.fixture
 def dependency_graph_with_object_that_depends_on_all_other_nodes(dependency_init, dependency_graph):
     def x(a, b, c): return "x" + a + b + c
-    return (dependency_init(x),) + dependency_graph
+    return (partial(dependency_init, dependency_object=x),) + dependency_graph
+
+@pytest.fixture
+def resolved_dependency_graph_with_object_that_depends_on_all_other_nodes_context(default_dependency_graph_manager, dependency_graph_with_object_that_depends_on_all_other_nodes):
+    return ResolvedDependencyGraphContext.get_instance(default_dependency_graph_manager, dependency_graph_with_object_that_depends_on_all_other_nodes)
+
+@pytest.fixture
+def resolved_dependency_graph_with_object_that_depends_on_all_other_nodes_context2(default_dependency_graph_manager, dependency_graph2, dependency_graph_with_object_that_depends_on_all_other_nodes):
+    return ResolvedDependencyGraphContext.get_instance(default_dependency_graph_manager, chain.from_iterable((dependency_graph2, dependency_graph_with_object_that_depends_on_all_other_nodes)))
 
 @pytest.fixture
 def dependency_graph_node_with_in_edges(dependency_init):
-    return dependency_init(lambda _: _)
+    return (partial(dependency_init, dependency_object=lambda _: _),)
 
+@pytest.fixture
+def resolved_dependency_graph_node_with_in_edges_context(default_dependency_graph_manager, dependency_graph_node_with_in_edges):
+    return ResolvedDependencyGraphContext.get_instance(default_dependency_graph_manager, dependency_graph_node_with_in_edges)
 
 @pytest.fixture
 def dependency_graph_node_with_no_in_edges(dependency_init):
-    return dependency_init(lambda: None)
+    return (partial(dependency_init, dependency_object=lambda: None),)
+
+@pytest.fixture
+def resolved_dependency_graph_node_with_no_in_edges_context(default_dependency_graph_manager, dependency_graph_node_with_no_in_edges):
+    return ResolvedDependencyGraphContext.get_instance(default_dependency_graph_manager, dependency_graph_node_with_no_in_edges)
 
 @pytest.fixture
 def dependency_init():
@@ -73,69 +141,49 @@ def dummy():
     return Dummy()
 
 @pytest.fixture
-def object_to_resolve(dependency_decorator, default_dependency_graph_manager):
+def object_to_resolve(basic_configurator):
 
-    #TODO: HACK ALERT
-    dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER = default_dependency_graph_manager
-    @dependency_decorator(lifetime=DependencyLifetimeEnum.MODULE, visibility=DependencyVisibilityEnum.GLOBAL)
+    dependency_wrapper = basic_configurator.get_dependency_wrapper()
+    @dependency_wrapper(lifetime=DependencyLifetimeEnum.MODULE, visibility=DependencyVisibilityEnum.GLOBAL)
     def a():
         return Dummy()
     return a
 
 @pytest.fixture
-def resolved_object(object_to_resolve, dependency_decorator, default_container):
-
-    # TODO: HACK ALERT
-    default_container.dependency_graph_manager = dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER
+def resolved_object(object_to_resolve, basic_configurator):
     def b(a):
         return a
-    return default_container.wire_dependencies(b)
+    return basic_configurator.get_container().wire_dependencies(b)
 
 @pytest.fixture
-def container(dependency_graph_with_object_that_depends_on_all_other_nodes):
-    dependency_graph_manager = DependencyGraphManager(DependencyGraph())
-    for dependency in dependency_graph_with_object_that_depends_on_all_other_nodes:
-        dependency_graph_manager.add_dependency(dependency, visibility=DependencyVisibilityEnum.GLOBAL)
-    container = Container(dependency_graph_manager)
-    return container
-
-@pytest.fixture
-def default_container(default_dependency_graph_manager):
-    return Container(default_dependency_graph_manager)
-
-@pytest.fixture
-def container2(dependency_graph2, dependency_graph_with_object_that_depends_on_all_other_nodes, default_dependency_graph_manager):
-    for dependency in chain.from_iterable((dependency_graph2, dependency_graph_with_object_that_depends_on_all_other_nodes)):
-        default_dependency_graph_manager.add_dependency(dependency, visibility=DependencyVisibilityEnum.GLOBAL)
-    container = Container(default_dependency_graph_manager)
-    return container
-
-@pytest.fixture
-def multiple_module_setup_with_global(dependency_decorator):
-    @dependency_decorator(visibility=DependencyVisibilityEnum.GLOBAL)
+def multiple_module_setup_with_global(basic_configurator):
+    dependency_wrapper = basic_configurator.get_dependency_wrapper()
+    @dependency_wrapper(visibility=DependencyVisibilityEnum.GLOBAL)
     def b():
         return "global b"
 
 @pytest.fixture
-def multiple_module_setup_with_global_c(dependency_decorator):
-    @dependency_decorator(visibility=DependencyVisibilityEnum.GLOBAL)
+def multiple_module_setup_with_global_c(basic_configurator):
+    dependency_wrapper = basic_configurator.get_dependency_wrapper()
+    @dependency_wrapper(visibility=DependencyVisibilityEnum.GLOBAL)
     def c():
         return "global c"
 
 @pytest.fixture
-def multiple_module_setup_with_module(dependency_decorator):
-    @dependency_decorator
+def multiple_module_setup_with_module(basic_configurator):
+    dependency_wrapper = basic_configurator.get_dependency_wrapper()
+    @dependency_wrapper
     def b():
         return "module b"
 
 @pytest.fixture
-def object_to_wire_up(dependency_graph_with_object_that_depends_on_all_other_nodes):
-    return dependency_graph_with_object_that_depends_on_all_other_nodes[0]
+def object_to_wire_up(resolved_dependency_graph_with_object_that_depends_on_all_other_nodes_context):
+    return next(resolved_dependency_graph_with_object_that_depends_on_all_other_nodes_context.resolved_dependency_graph)
 
 
 @pytest.fixture
-def object_to_wire_up2(dependency_graph2):
-    return dependency_graph2[0]
+def object_to_wire_up2(resolved_dependency_graph2_context):
+    return next(resolved_dependency_graph2_context.resolved_dependency_graph)
 
 
 @pytest.fixture
@@ -144,13 +192,13 @@ def dependency_graph_node():
 
 
 @pytest.fixture
-def dependency_decorator():
-    return dependency
+def dependency_wrapper(basic_configurator):
+    return basic_configurator.get_dependency_wrapper()
 
 
 @pytest.fixture(params=[(("a",), ("abc",)), (("b",), ("bc",)), (("a", "b"), ("abc", "bc"))])
-def partial_dependency_fixture(request, container):
-    attributes = {"ignored_dependencies": request.param[0], "left_over_dependencies": request.param[1], "container": container}
+def partial_dependency_fixture(request, configurator_with_dependency_nodes):
+    attributes = {"ignored_dependencies": request.param[0], "left_over_dependencies": request.param[1], "container": configurator_with_dependency_nodes.get_container()}
     return type("PartialDependencyFixture", (), attributes)
 
 @pytest.fixture

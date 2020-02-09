@@ -3,7 +3,7 @@ from inspect import getargspec
 from pprint import pformat
 
 from ploceidae.dependency_lifetime.dependency_lifetime_key import DependencyLifetimeKey
-from ploceidae.dependency_graph_manager.cache_item import CacheItem
+from ploceidae.dependency_management.cache_item import CacheItem
 from ploceidae.utilities.module_name_helper import ModuleNameHelper
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,6 @@ class DependencyResolutionMethods(object):
         with self.lock:
             dependencies = dependency_retrieval_method()
             ret =  self.resolve_dependencies_as_list(list(dependencies), dependency_lifetime_key)
-            del dependency_lifetime_key
             return ret
 
     def replace_alt_keys_with_valid_dependency_lifetime_from_instance(self, instance, object_to_wire_up, time_stamp):
@@ -54,7 +53,7 @@ class DependencyResolutionMethods(object):
             if dependency_wrapper is None:
                 # we can't validate dependencies before actual dependency resolution, because we might add a dependency
                 # after something declares it in its argument list
-                raise BaseException("{0} doesn't exist".format(dependency_name))
+                raise ValueError("{0} doesn't exist".format(dependency_name))
             cache_item = CacheItem(dependency_wrapper.dependency_object, dependency_wrapper.dependency_name)
             # if there is no need to resolve arguments
             if not self.dependency_graph[cache_item].dependencies:
@@ -111,14 +110,14 @@ class DependencyResolutionMethods(object):
 
     @classmethod
     def get_dependencies(cls, dependency_object):
-        return cls.safe_get_argspec(dependency_object)[0]
+        return cls.get_argspec(dependency_object)[0]
 
     @classmethod
     def get_group(cls, dependency_object):
-        return cls.safe_get_argspec(dependency_object)[1]
+        return cls.get_argspec(dependency_object)[1]
 
     @staticmethod
-    def safe_get_argspec(dependency_object):
+    def get_argspec(dependency_object):
         try:
             return getargspec(dependency_object)
         except TypeError:

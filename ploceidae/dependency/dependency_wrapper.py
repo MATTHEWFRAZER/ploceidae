@@ -1,80 +1,65 @@
-from functools import wraps
 import logging
 
 from ploceidae.constants import BINDINGS
-from ploceidae.utilities.common import DEPENDENCY_GRAPH_MANAGER
-from ploceidae.utilities.dependency_visibility_enum import DependencyVisibilityEnum
-from ploceidae.dependency.dependency_helper_methods import DependencyHelperMethods
+from ploceidae.dependency.dependency_wrapper_helper_methods import DependencyWrapperHelperMethods
 from ploceidae.dependency.dependency_locator import DependencyLocator
 from ploceidae.dependency.garbage_collection.garbage_collection_observer import GarbageCollectionObserver
+from ploceidae.dependency_lifetime.dependency_lifetime_enum import DependencyLifetimeEnum
 
 logger = logging.getLogger(__name__)
 
-class DependencyWrapper(DependencyLocator, DependencyHelperMethods):
+class DependencyWrapper(object):
     """decorator is a class object because that will make it easier to hook into later"""
 
     GARBAGE_COLLECTION_OBSERVER = GarbageCollectionObserver.get_instance()
-    DEPENDENCY_GRAPH_MANAGER = DEPENDENCY_GRAPH_MANAGER
 
-    def __init__(self, **kwargs):
+    def __init__(self, lifetime, group, visibility, dependency_graph_manager):
         """
         :param kwargs: lifetime determines how the dependency is delivered (if we cache it or not), allows for grouping dependencies,
         visibility determines the visibility of dependency (True means dependency is visible independent of its module position)
         """
-        # super does get called... in this method
-        self.input_validation_to_init(kwargs)
-        self.lifetime = kwargs.get("lifetime", "function")
-        self.group = kwargs.get("group")
-        self.visibility = kwargs.get("visibility")
+        self.lifetime = lifetime
+        self.group = group
+        self.visibility = visibility
+        self.dependency_graph_manager = dependency_graph_manager
         self.callbacks = []
 
     def __call__(self, dependency_object):
-        # we should put this algorithm somne place else, question do we want the end caller to be in the dependency graph
+        # TODO: we should move this algorithm somewhere else, question do we want the end caller to be in the dependency graph
         # do I need to do classmethod check here? Maybe because the class method itself (unbounded will not be callable). If a user does class
         # introspection and decides to decorate a classmethod accessed via __dict__ yeah
-        self.input_validation_for_dependency_object(dependency_object)
+        DependencyWrapperHelperMethods.input_validation_for_dependency_object(dependency_object)
 
-        # get dependencies before because we need to keep the dependencies for the callable object
-        dependencies = self.get_dependencies_from_callable_object(dependency_object, *BINDINGS)
+        self.dependencies = DependencyWrapperHelperMethods.get_dependencies_from_callable_object(dependency_object, *BINDINGS)
         logger.info("register callbacks to invoke after")
-        dependency_object = self.invoke_callbacks_after(dependency_object)
-        self.init_dependency_inner(dependency_object)
-        self.dependencies = dependencies
+        decorated_dependency_object = DependencyWrapperHelperMethods.register_callbacks_with_dependency_object(self.callbacks, dependency_object)
+        self.dependency_locator = DependencyLocator(self.GARBAGE_COLLECTION_OBSERVER, self.lifetime, decorated_dependency_object)
+        self.dependency_name = dependency_object.__name__
         try:
             logger.info("adding dependency to dependency graph")
-            self.DEPENDENCY_GRAPH_MANAGER.add_dependency(self, self.visibility)
+            self.dependency_graph_manager.add_dependency(self, self.visibility)
         except ValueError as ex:
-            logger.error("problem with adding dependency to dependency graph: {}".format(ex))
-        return dependency_object
+            logger.error("problem with adding dependency to dependency graph: {0}".format(ex))
+        return decorated_dependency_object
 
-    def init_dependency_inner(self, dependency_object):
-        super(DependencyWrapper, self).__init__(self.GARBAGE_COLLECTION_OBSERVER, self.lifetime, dependency_object)
-        self.dependencies = self.get_dependencies_from_callable_object(dependency_object, *BINDINGS)
-        self.dependency_name = dependency_object.__name__
+    def locate(self, dependency_lifetime_key, *resolved_dependencies):
+        return self.dependency_locator.locate(dependency_lifetime_key, *resolved_dependencies)
 
-    def invoke_callbacks_after(self, func):
-        @wraps(func)
-        def nested(*unresolved_dependencies, **kwargs):
-            cached = func(*unresolved_dependencies, **kwargs)
-            for callback in self.callbacks: callback()
-            return cached
-        return nested
+    def replace_alt_keys_with_valid_dependency_lifetime_from_instance(self, instance, object_to_wire_up, time_stamp):
+        return self.dependency_locator.replace_alt_keys_with_valid_dependency_lifetime_from_instance(instance, object_to_wire_up, time_stamp)
 
-    @classmethod
-    def get_dependency_without_decoration(cls, dependency_object, visibility=DependencyVisibilityEnum.Module):
-        dependency = cls(visibility=visibility)
-        dependency.init_dependency_inner(dependency_object)
-        return dependency
+    @property
+    def dependency_object(self):
+        return self.dependency_locator.dependency_object
+
+    @property
+    def services(self):
+        return self.dependency_locator.services
 
     @classmethod
-    def control_initialization(cls, *args, **kwargs):
-        """
-        this makes it so that dependency can be invoked as a decorator without calling it with empty args. need args and
-        kwargs here because it needs to be called like __init__ or __call__
-        """
-        if kwargs:
-            # if we're calling it like __init__
-            return cls(**kwargs)
-        else:
-            # if we're calling it like __call__
-            return cls()(*args)
+    def get_dependency_without_decoration(cls, dependency_object, visibility, dependency_graph_manager):
+        dependency_wrapper = cls(None, None, visibility, dependency_graph_manager)
+        dependency_wrapper.dependency_locator = DependencyLocator(cls.GARBAGE_COLLECTION_OBSERVER, DependencyLifetimeEnum.FUNCTION, dependency_object)
+        dependency_wrapper.dependencies = DependencyWrapperHelperMethods.get_dependencies_from_callable_object(dependency_object, *BINDINGS)
+        dependency_wrapper.dependency_name = dependency_object.__name__
+        return dependency_wrapper
