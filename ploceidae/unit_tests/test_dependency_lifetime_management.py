@@ -1,12 +1,16 @@
 from ploceidae.dependency_lifetime.dependency_lifetime_enum import DependencyLifetimeEnum
-from ploceidae.dependency_graph_manager.cache_item import CacheItem
+from ploceidae.dependency_management.cache_item import CacheItem
 from ploceidae.constants import GLOBAL_NAMESPACE
 from ploceidae.utilities.dependency_visibility_enum import DependencyVisibilityEnum
 
 
 class TestDependencyLifetimeManagement:
     # this also needs to be tested along a dependency hierarchy
-    def test_function_dependency_lifetime_entry_is_deleted_after_delivered_to_function(self, default_container, dependency_decorator, dummy):
+    def test_function_dependency_lifetime_entry_is_deleted_after_delivered_to_function(self, basic_configurator, dummy):
+
+        container = basic_configurator.get_container()
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+
         @dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION, visibility=DependencyVisibilityEnum.GLOBAL)
         def a():
             return dummy.__class__()
@@ -17,9 +21,9 @@ class TestDependencyLifetimeManagement:
         def c(a):
             return a
 
-        first = default_container.wire_dependencies(b)
-        second = default_container.wire_dependencies(b)
-        third = default_container.wire_dependencies(c)
+        first = container.wire_dependencies(b)
+        second = container.wire_dependencies(b)
+        third = container.wire_dependencies(c)
 
         assert type(first) is type(dummy)
         assert type(second) is type(dummy)
@@ -31,7 +35,9 @@ class TestDependencyLifetimeManagement:
         #check that service locator entries are done
 
 
-    def test_instance_dependency_lifetime_object_entry_is_deleted_after_instance_is_deleted(self, default_container, dependency_decorator):
+    def test_instance_dependency_lifetime_object_entry_is_deleted_after_instance_is_deleted(self, basic_configurator):
+        container = basic_configurator.get_container()
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
 
         @dependency_decorator(lifetime=DependencyLifetimeEnum.INSTANCE, visibility=DependencyVisibilityEnum.GLOBAL)
         def a():
@@ -45,20 +51,23 @@ class TestDependencyLifetimeManagement:
                 # we do this check to show that we have a correctly resolved instance dependency
                 assert a is self.a
         #issue here is that you have to have it wired before you can generated the write key, that's why i did a temp and would call it again, not sure what to do
-        x = default_container.wire_dependencies(A)
-        default_container.wire_dependencies(x.x)
+        x = container.wire_dependencies(A)
+        container.wire_dependencies(x.x)
 
         cache_item = CacheItem(a, a.__name__)
         cache_item.dependency_module = GLOBAL_NAMESPACE
 
-        if cache_item not in dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER.dependency_graph:
+        if cache_item not in container.dependency_graph_manager.dependency_graph:
            raise Exception("dependency a was never inserted into dependency graph")
 
         del x
 
-        assert cache_item in dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER.dependency_graph
+        assert cache_item in container.dependency_graph_manager.dependency_graph
 
-    def test_class_dependency_lifetime_allows_for_multiple_objects(self, default_container, dependency_decorator):
+    def test_class_dependency_lifetime_allows_for_multiple_objects(self, basic_configurator):
+        container = basic_configurator.get_container()
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+
         @dependency_decorator(lifetime=DependencyLifetimeEnum.CLASS, visibility=DependencyVisibilityEnum.GLOBAL)
         def mult():
             return type("B", (), {})()
@@ -70,14 +79,13 @@ class TestDependencyLifetimeManagement:
         one = A()
         two = A()
 
-        assert default_container.wire_dependencies(one.x) is default_container.wire_dependencies(two.x)
+        assert container.wire_dependencies(one.x) is container.wire_dependencies(two.x)
 
 
     COUNT = 0
-    def test_instance_dependency_lifetime_wires_up_different_dependency_for_each_istance(self, dependency_decorator, container):
-
-        # TODO: HACK ALERT
-        dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER = container.dependency_graph_manager
+    def test_instance_dependency_lifetime_wires_up_different_dependency_for_each_istance(self, basic_configurator):
+        container = basic_configurator.get_container()
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
 
         @dependency_decorator(lifetime=DependencyLifetimeEnum.INSTANCE, visibility=DependencyVisibilityEnum.GLOBAL)
         def instance_a():
@@ -97,24 +105,22 @@ class TestDependencyLifetimeManagement:
         assert result_a1 != result_a2
         assert result_a1 == result_a1_prime
 
-    def test_module_dependency_lifetime_resolves_different_objects_to_different_modules(self, resolved_object, dummy, default_container, dependency_decorator):
-
-        # TODO: HACK ALERT
-        default_container.dependency_graph_manager = dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER
+    def test_module_dependency_lifetime_resolves_different_objects_to_different_modules(self, resolved_object, dummy, basic_configurator):
+        container = basic_configurator.get_container()
 
         def b(a):
             return a
 
-        first = default_container.wire_dependencies(b)
+        first = container.wire_dependencies(b)
         assert type(first) is type(resolved_object) is type(dummy)
         assert resolved_object is not first
 
-    def test_overriding_fixtures(self, dependency_decorator, container):
+    def test_overriding_fixtures(self, basic_configurator):
+        container = basic_configurator.get_container()
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+
         # expected behavior as of now is that a new fixture loaded at module load time should override the old one
         # -- the alternative is to raise an exception when decoration happens, but the current decision parallels pytest's behavior
-
-        # TODO: HACK ALERT
-        dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER = container.dependency_graph_manager
 
         @dependency_decorator(lifetime=DependencyLifetimeEnum.INSTANCE, visibility=DependencyVisibilityEnum.GLOBAL)
         def conflict(): return conflict.__name__
@@ -131,15 +137,19 @@ class TestDependencyLifetimeManagement:
                 return conflict
         assert container.wire_dependencies(WireUp.method2) is container.wire_dependencies(WireUp().method)
 
-    def test_module_dependency_lifetime_resolves_same_object_in_same_module(self, dependency_decorator, dummy, container):
+    def test_module_dependency_lifetime_resolves_same_object_in_same_module(self, dummy, basic_configurator):
+        container = basic_configurator.get_container()
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+
         self._test_dependency_lifetime(DependencyLifetimeEnum.MODULE, dependency_decorator, dummy, container)
 
-    def test_session_dependency_lifetime_does_not_allow_for_multiple_objects(self, dependency_decorator, dummy, container):
+    def test_session_dependency_lifetime_does_not_allow_for_multiple_objects(self, dummy, basic_configurator):
+        container = basic_configurator.get_container()
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+
         self._test_dependency_lifetime(DependencyLifetimeEnum.SESSION, dependency_decorator, dummy, container)
 
     def _test_dependency_lifetime(self, lifetime, dependency_decorator, dummy, container):
-        # HACK ALERT! all dependencies to tests must depend on the same dependency_graph_manager
-        dependency_decorator.__self__.DEPENDENCY_GRAPH_MANAGER = container.dependency_graph_manager
         @dependency_decorator(lifetime=lifetime)
         def a():
             return dummy

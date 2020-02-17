@@ -1,3 +1,3 @@
 class DependencyVisibilityEnum:
     GLOBAL = "global"
-    Module = "module"
+    MODULE = "module"

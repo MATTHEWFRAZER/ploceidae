@@ -8,9 +8,9 @@ logger = logging.getLogger(__name__)
 
 class DependencyLocator(object):
 
-    def __init__(self, garbage_collection_observer, dependency_lifetime, dependency_object):
+    def __init__(self, garbage_collection_observer, lifetime, dependency_object):
         self.garbage_collection_observer = garbage_collection_observer
-        self.lifetime = dependency_lifetime
+        self.lifetime = lifetime
         self.services = {}
         self.dependency_object = dependency_object
 
@@ -42,26 +42,26 @@ class DependencyLocator(object):
             logger.info("key {0} ==== key string {1}".format(key, dependency_lifetime_key_string))
             if key == dependency_lifetime_key_string:
                 logger.debug("replacing alt key {0} with new key {1}".format(dependency_lifetime_key_string, str(new_dependency_lifetime_key)))
-                service = self.services[dependency_lifetime_key_string]
                 new_dependency_lifetime_key_string = str(new_dependency_lifetime_key)
-                self.services[new_dependency_lifetime_key_string] = service
+                self.services[new_dependency_lifetime_key_string] = self.services[dependency_lifetime_key_string]
                 del self.services[dependency_lifetime_key_string]
-                del new_dependency_lifetime_key
                 # only for instance lifetime do we care about how long lived the objects are so we set a callback in the gc module
-                self.garbage_collection_observer.register(self.generate_callback_from_instance(instance, service, new_dependency_lifetime_key_string))
+                self.garbage_collection_observer.register(self.generate_callback_from_instance(instance, new_dependency_lifetime_key_string))
 
-    def generate_callback_from_instance(self, instance, service, dependency_lifetime_key_string):
-        weak = weakref.ref(instance)
+    def generate_callback_from_instance(self, instance, dependency_lifetime_key_string):
+        weak_reference = weakref.ref(instance)
         # we only need to know about the "phase". if it is stop we want to run this bad boy, we don't care about info
         def nested(phase, info):
-            reference = weak()
-            if reference is None:
-                try:
-                    if dependency_lifetime_key_string in self.services:
-                        del self.services[dependency_lifetime_key_string]
-                    del service
-                finally:
-                    # if we fail here, means service was unbound and has already been collected
-                    return True
-            return False
+            return self.remove_stale_references_in_services(weak_reference, dependency_lifetime_key_string)
         return nested
+
+    def remove_stale_references_in_services(self, weak_reference, dependency_lifetime_key_string):
+        reference = weak_reference()
+        if reference is None:
+            try:
+                if dependency_lifetime_key_string in self.services:
+                    del self.services[dependency_lifetime_key_string]
+            finally:
+                # if we fail here, means service was unbound and has already been collected
+                return True
+        return False

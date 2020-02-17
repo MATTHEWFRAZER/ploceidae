@@ -1,10 +1,9 @@
-from pprint import pformat
+from functools import wraps
 
 from ploceidae.constants import BINDINGS
-from ploceidae.dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
+from ploceidae.dependency_management.dependency_resolution_methods import DependencyResolutionMethods
 
-class DependencyHelperMethods(object):
-    VALID_KWARGS = ("lifetime", "group", "visibility")
+class DependencyWrapperHelperMethods(object):
 
     @classmethod
     def input_validation_for_dependency_object(cls, decorated_object):
@@ -30,16 +29,6 @@ class DependencyHelperMethods(object):
             raise ValueError("{0} is a dependency on itself".format(decorated_object.__name__))
 
     @classmethod
-    def input_validation_to_init(cls, kwargs):
-        invalid_keys = []
-        for keyword in kwargs.keys():
-            if not cls.is_valid_keyword(keyword):
-                invalid_keys.append(keyword)
-        if invalid_keys:
-            invalid_keys_string = pformat(invalid_keys)
-            raise ValueError("the following key word arguments are invalid: \n{0}".format(invalid_keys_string))
-
-    @classmethod
     def is_valid_keyword(cls, keyword):
         return keyword in cls.VALID_KWARGS
 
@@ -47,3 +36,12 @@ class DependencyHelperMethods(object):
     def get_dependencies_from_callable_object(dependency_objects, *dependencies_to_ignore):
         return [dependency_name for dependency_name in DependencyResolutionMethods.get_dependencies(dependency_objects) if dependency_name not in dependencies_to_ignore + BINDINGS]
 
+    @staticmethod
+    def register_callbacks_with_dependency_object(callbacks, func):
+        @wraps(func)
+        def nested(*unresolved_dependencies, **kwargs):
+            cached = func(*unresolved_dependencies, **kwargs)
+            for callback in callbacks: callback()
+            return cached
+
+        return nested

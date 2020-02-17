@@ -4,7 +4,7 @@ from pymonad import Functor
 from trochilidae.interoperable_reduce import interoperable_reduce
 
 from ploceidae.constants import GLOBAL_NAMESPACE
-from ploceidae.dependency_graph_manager.cache_item import CacheItem
+from ploceidae.dependency_management.cache_item import CacheItem
 from ploceidae.utilities.reduce_operand import ReduceOperand
 
 logger = logging.getLogger(__name__)

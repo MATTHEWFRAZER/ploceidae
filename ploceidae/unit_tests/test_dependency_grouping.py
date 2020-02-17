@@ -2,7 +2,10 @@ from ploceidae.utilities.dependency_visibility_enum import DependencyVisibilityE
 
 
 class TestDependencyGrouping:
-    def test_grouped_dependencies_are_resolved_to_dependent(self, dependency_decorator, default_container):
+    def test_grouped_dependencies_are_resolved_to_dependent(self, basic_configurator):
+        container = basic_configurator.get_container()
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+
         @dependency_decorator(group="deps", visibility=DependencyVisibilityEnum.GLOBAL)
         def a():
             return "a"
@@ -18,10 +21,13 @@ class TestDependencyGrouping:
         def x(*deps):
             return deps
 
-        resolved_deps = default_container.wire_dependencies(x)
+        resolved_deps = container.wire_dependencies(x)
         assert all(dep in resolved_deps for dep in (a(), b(), c(b())))
 
-    def test_dependencies_that_are_grouped_can_be_resolved_with_normal_dependencies(self, dependency_decorator, default_container):
+    def test_dependencies_that_are_grouped_can_be_resolved_with_normal_dependencies(self, basic_configurator):
+        container = basic_configurator.get_container()
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+
         @dependency_decorator(group="deps", visibility=DependencyVisibilityEnum.GLOBAL)
         def a():
             return "a"
@@ -37,11 +43,14 @@ class TestDependencyGrouping:
         def x(a, b, c, *deps):
             return (a, b, c), deps
 
-        resolved_deps = default_container.wire_dependencies(x)
+        resolved_deps = container.wire_dependencies(x)
         assert resolved_deps[0] == (a(), b(), c(b()))
         assert all(dep in resolved_deps[1] for dep in (a(), b(), c(b())))
 
-    def test_dependency_that_is_both_grouped_and_normal(self, dependency_decorator, default_container):
+    def test_dependency_that_is_both_grouped_and_normal(self, basic_configurator):
+        container = basic_configurator.get_container()
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+
         @dependency_decorator(group="deps", visibility=DependencyVisibilityEnum.GLOBAL)
         def a():
             return "a"
@@ -49,10 +58,13 @@ class TestDependencyGrouping:
         def b(a, *deps):
             return (a,) + deps
 
-        assert default_container.wire_dependencies(b) == ("a", "a")
+        assert container.wire_dependencies(b) == ("a", "a")
 
 
-    def test_dependency_that_is_grouped_can_be_resolved_independently_of_group(self, dependency_decorator, default_container):
+    def test_dependency_that_is_grouped_can_be_resolved_independently_of_group(self, basic_configurator):
+        container = basic_configurator.get_container()
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+
         @dependency_decorator(group="deps", visibility=DependencyVisibilityEnum.GLOBAL)
         def a():
             return "a"
@@ -63,11 +75,14 @@ class TestDependencyGrouping:
         def c(*deps):
             return deps
 
-        assert default_container.wire_dependencies(b) == "ba"
-        assert default_container.wire_dependencies(c) == ("a",)
+        assert container.wire_dependencies(b) == "ba"
+        assert container.wire_dependencies(c) == ("a",)
 
-    def test_dependency_that_has_same_name_as_group(self, dependency_decorator, default_container):
+    def test_dependency_that_has_same_name_as_group(self, basic_configurator):
         dep = 3
+
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+        container = basic_configurator.get_container()
 
         @dependency_decorator(group="group", visibility=DependencyVisibilityEnum.GLOBAL)
         def group():
@@ -79,5 +94,5 @@ class TestDependencyGrouping:
         def b(*group):
             return group
 
-        assert default_container.wire_dependencies(a) == dep
-        assert default_container.wire_dependencies(b) == (dep,)
+        assert container.wire_dependencies(a) == dep
+        assert container.wire_dependencies(b) == (dep,)
