@@ -22,7 +22,11 @@ Ploceidae (https://en.wikipedia.org/wiki/Ploceidae) is the family name of birds 
 
 **example 1 (how to declare a dependency):**
 ```python
-from ploceidae.dependency import dependency
+from ploceidae.core.configurators import BasicConfigurator
+
+configurator = BasicConfigurator()
+dependency = configurator.get_dependency_wrapper()
+
 @dependency
 def dep():
     return 3
@@ -36,22 +40,30 @@ def use_dep(dep):
 
 **example 3 (how to wire up dependencies):**
 ```python
-from ploceidae.container import Container
-container_instance = Container.get_basic_container()
-wired_return_value = container_instance.wire_dependencies(use_dep)
+from ploceidae.core.configurators import BasicConfigurator
+
+configurator = BasicConfigurator()
+container = configurator.get_container()
+wired_return_value = container.wire_dependencies(use_dep)
 ```
 
 **example 4 (how to partially wire up dependencies):**
 ```python
-from ploceidae.container import Container
-container_instance = Container.get_basic_container()
-partially_wired_return_value = container_instance.partially_wire_dependencies(use_dep, "dep")
+from ploceidae.core.configurators import BasicConfigurator
+
+configurator = BasicConfigurator()
+container = configurator.get_container()
+partially_wired_return_value = container.partially_wire_dependencies(use_dep, "dep")
 wired_return_value = partially_wired_return_value()
 ```
 
 **example 5 (how to declare a dependency that belongs to a group):**
 ```python
-from ploceidae.dependency import dependency
+from ploceidae.core.configurators import BasicConfigurator
+
+configurator = BasicConfigurator()
+dependency = configurator.get_dependency_wrapper()
+
 @dependency(group="group")
 def group():
     return 3
@@ -65,7 +77,9 @@ def use_group(*group):
 
 **example 7 (how to wire up dependencies that belong to a group):**
 ```python
-from ploceidae.container import Container
-container_instance = Container.get_basic_container()
-wired_return_value = container_instance.wire_dependencies(use_group)
+from ploceidae.core.configurators import BasicConfigurator
+
+configurator = BasicConfigurator()
+container = configurator.get_container()
+wired_return_value = container.wire_dependencies(use_group)
 ```
