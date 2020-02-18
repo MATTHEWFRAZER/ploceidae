@@ -41,6 +41,37 @@ class TestDependency:
         @dependency_decorator
         def a(): pass
 
+    def test_resolve_dependency_that_is_registered_after_dependent(self, basic_configurator):
+        container = basic_configurator.get_container()
+        dependency_wrapper = basic_configurator.get_dependency_wrapper()
+
+        answer = 2
+
+        def a(b):
+            return b
+
+        @dependency_wrapper
+        def b():
+            return answer
+
+        assert answer == container.wire_dependencies(a)
+
+    def test_resolve_dependency_that_is_registered_after_wrapped_dependent(self, basic_configurator):
+        container = basic_configurator.get_container()
+        dependency_wrapper = basic_configurator.get_dependency_wrapper()
+
+        answer = 2
+
+        @dependency_wrapper
+        def a(b):
+            return b
+
+        @dependency_wrapper
+        def b():
+            return answer
+
+        assert answer == container.wire_dependencies(a)
+
     def test_dependency_decorator_has_correct_module(self, basic_configurator, separate_decorator):
 
         dependency_decorator = basic_configurator.get_dependency_wrapper()

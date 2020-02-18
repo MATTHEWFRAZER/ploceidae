@@ -22,7 +22,6 @@ class DependencyWrapper(object):
         self.group = group
         self.visibility = visibility
         self.dependency_graph_manager = dependency_graph_manager
-        self.callbacks = []
 
     def __call__(self, dependency_object):
         # TODO: we should move this algorithm somewhere else, question do we want the end caller to be in the dependency graph
@@ -32,15 +31,14 @@ class DependencyWrapper(object):
 
         self.dependencies = DependencyWrapperHelperMethods.get_dependencies_from_callable_object(dependency_object, *BINDINGS)
         logger.info("register callbacks to invoke after")
-        decorated_dependency_object = DependencyWrapperHelperMethods.register_callbacks_with_dependency_object(self.callbacks, dependency_object)
-        self.dependency_locator = DependencyLocator(self.GARBAGE_COLLECTION_OBSERVER, self.lifetime, decorated_dependency_object)
+        self.dependency_locator = DependencyLocator(self.GARBAGE_COLLECTION_OBSERVER, self.lifetime, dependency_object)
         self.dependency_name = dependency_object.__name__
         try:
             logger.info("adding dependency to dependency graph")
             self.dependency_graph_manager.add_dependency(self, self.visibility)
         except ValueError as ex:
             logger.error("problem with adding dependency to dependency graph: {0}".format(ex))
-        return decorated_dependency_object
+        return dependency_object
 
     def locate(self, dependency_lifetime_key, *resolved_dependencies):
         return self.dependency_locator.locate(dependency_lifetime_key, *resolved_dependencies)
