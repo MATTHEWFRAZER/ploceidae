@@ -35,13 +35,3 @@ class DependencyWrapperHelperMethods(object):
     @staticmethod
     def get_dependencies_from_callable_object(dependency_objects, *dependencies_to_ignore):
         return [dependency_name for dependency_name in DependencyResolutionMethods.get_dependencies(dependency_objects) if dependency_name not in dependencies_to_ignore + BINDINGS]
-
-    @staticmethod
-    def register_callbacks_with_dependency_object(callbacks, func):
-        @wraps(func)
-        def nested(*unresolved_dependencies, **kwargs):
-            cached = func(*unresolved_dependencies, **kwargs)
-            for callback in callbacks: callback()
-            return cached
-
-        return nested
