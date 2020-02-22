@@ -6,6 +6,12 @@ from ploceidae.utilities.singleton_implementer import SingletonImplementer
 from ploceidae.constants import PHASE_STOP
 
 class GarbageCollectionObserver(with_metaclass(SingletonImplementer)):
+    """
+    Handles freeing of dependencies to instances. We have the lapsed listener problem in the lcoators.
+    This class is needed for the case where an instance depends on an object. Weak references here might be
+    an obvious candidate for a solution, however, they will NOT work in the case where an instance's __init__
+    depends on a dependency, does not immediately use that reference, and later depends on said dependency in a method
+    """
 
     def __new__(cls, *args, **kwargs):
         instance = super(GarbageCollectionObserver, cls).__new__(cls, *args, **kwargs)
