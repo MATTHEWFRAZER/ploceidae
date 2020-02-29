@@ -1,14 +1,14 @@
-import attr
-
 from ploceidae.container import Container
 from ploceidae.dependency_management.dependency_graph import DependencyGraph
 from ploceidae.dependency_management.dependency_graph_manager import DependencyGraphManager
 from ploceidae.dependency.dependency_wrapper import DependencyWrapper
 from ploceidae.dependency_lifetime.dependency_lifetime_enum import DependencyLifetimeEnum
 
-@attr.s
 class BasicConfigurator(object):
-    dependency_graph_manager = attr.ib(init=False, default=DependencyGraphManager(DependencyGraph()))
+
+    def __init__(self, dependency_graph_manager=None):
+        dependency_graph = DependencyGraph()
+        self.dependency_graph_manager = DependencyGraphManager(dependency_graph) if dependency_graph_manager is None else dependency_graph_manager
 
     def get_container(self):
         return Container(self.dependency_graph_manager)
