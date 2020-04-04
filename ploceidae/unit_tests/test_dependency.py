@@ -242,6 +242,34 @@ class TestDependency:
         except Exception as ex:
             pytest.fail("could not decorate function. Ex: {0}".format(ex))
 
+    @pytest.mark.xfail(raises=ValueError)
+    def test_dependency_application_with_class_that_only_inherits_from_object(self, basic_configurator):
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+
+        @dependency_decorator(lifetime="function")
+        class A(object): pass
+
+    @pytest.mark.xfail(raises=ValueError)
+    def test_dependency_application_with_class_that_only_inherits_from_object2(self, basic_configurator):
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+
+        @dependency_decorator(lifetime="function")
+        class A: pass
+
+    def test_class_object_is_resolvable(self, basic_configurator):
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+        container = basic_configurator.get_container()
+
+        @dependency_decorator(lifetime="function")
+        class Resolved(object):
+            def __init__(self): pass
+
+        # TODO: allow for lower class conversion so that an argument does not look like this???
+        def a(Resolved):
+            return type(Resolved)
+
+        assert container.wire_dependencies(a) is Resolved
+
     @staticmethod
     def dependency_application(syntax, application_callback):
         try:
