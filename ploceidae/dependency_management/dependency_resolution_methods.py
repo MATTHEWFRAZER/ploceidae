@@ -116,9 +116,13 @@ class DependencyResolutionMethods(object):
     def get_group(cls, dependency_object):
         return cls.get_argspec(dependency_object)[1]
 
-    @staticmethod
-    def get_argspec(dependency_object):
+    @classmethod
+    def get_argspec(cls, dependency_object):
         try:
             return getargspec(dependency_object)
         except TypeError:
-            return getargspec(dependency_object.__init__)
+
+            try:
+                return getargspec(dependency_object.__init__)
+            except (TypeError, AttributeError):
+                raise ValueError("could not get parameter information, did you pass in a class that an __init__ from object?")
