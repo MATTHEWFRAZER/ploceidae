@@ -1,4 +1,4 @@
-Ploceidae (https://en.wikipedia.org/wiki/Ploceidae) is the family name of birds that weave intricate nests not unlike how this framework wires together intricate dependency graphs. Ploceidae is heavily influenced by pytest fixtures and follows the same decoration declares a dependency paradigm.
+Ploceidae (https://en.wikipedia.org/wiki/Ploceidae) is the family name of birds that weave intricate nests not unlike how this framework wires together intricate dependency graphs. Ploceidae is heavily influenced by pytest fixtures and follows the same decoration-declares-a-dependency paradigm.
 
 **Terminology:**
 
@@ -82,4 +82,43 @@ from ploceidae.core.configurators import BasicConfigurator
 configurator = BasicConfigurator()
 container = configurator.get_container()
 wired_return_value = container.wire_dependencies(use_group)
+```
+
+**example 8 (how to change the name a dependency gets resolved as; this pattern is useful for declaring class objects as dependencies):**
+```python
+from ploceidae.core.configurators import BasicConfigurator
+
+configurator = BasicConfigurator()
+container = configurator.get_container()
+dependency = configurator.get_dependency_wrapper()
+
+@dependency(resolvable_nam="class_name")
+class ClassName(object): pass
+
+def depend_on_class(class_name):
+    return class_name
+wired_return_value = container.wire_dependencies(depend_on_class)
+```
+
+**example 9 (the relation between dependency and dependent is transitive. E.g. if a depends on b and b depends on c, then c is computed as an implicit dependency on a):**
+```python
+from ploceidae.core.configurators import BasicConfigurator
+
+configurator = BasicConfigurator()
+container = configurator.get_container()
+dependency = configurator.get_dependency_wrapper()
+
+@dependency
+def a():
+    return "a"
+    
+@dependency
+def b(a):
+    return a + "b"
+
+def c(b):
+    return b + "c"
+
+wired_return_value = container.wire_dependencies()
+wired_return_value == "abc"
 ```

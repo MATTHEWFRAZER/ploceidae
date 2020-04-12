@@ -4,6 +4,14 @@ from ploceidae.dependency_management.dependency_graph_manager import DependencyG
 from ploceidae.dependency.dependency_wrapper import DependencyWrapper
 from ploceidae.dependency_lifetime.dependency_lifetime_enum import DependencyLifetimeEnum
 
+__all__ = ["BasicConfigurator"]
+
+DEPENDENCY_GRAPH_MANAGER_KEY = "dependency_graph_manager"
+LIFETIME_KEY = "lifetime"
+VISIBILITY_KEY = "visibility"
+GROUP_KEY = "group"
+RESOLVABLE_NAME_KEY = "resolvable_name"
+
 class BasicConfigurator(object):
 
     def __init__(self, dependency_graph_manager=None):
@@ -16,15 +24,16 @@ class BasicConfigurator(object):
     def get_dependency_wrapper(self):
         def dependency(*args, **kwargs):
             if kwargs:
-                if any(key for key in kwargs.keys() if key not in ("lifetime", "visibility", "group")):
+                if any(key for key in kwargs.keys() if key not in (LIFETIME_KEY, VISIBILITY_KEY, GROUP_KEY, RESOLVABLE_NAME_KEY)):
                     raise ValueError("invalid argument to dependency wrapper")
-                kwargs["dependency_graph_manager"] = self.dependency_graph_manager
-                kwargs["lifetime"] = kwargs.get("lifetime", DependencyLifetimeEnum.FUNCTION)
-                kwargs["group"] = kwargs.get("group")
-                kwargs["visibility"] = kwargs.get("visibility")
+                kwargs[DEPENDENCY_GRAPH_MANAGER_KEY] = self.dependency_graph_manager
+                kwargs[LIFETIME_KEY] = kwargs.get(LIFETIME_KEY, DependencyLifetimeEnum.FUNCTION)
+                kwargs[GROUP_KEY] = kwargs.get(GROUP_KEY)
+                kwargs[VISIBILITY_KEY] = kwargs.get(VISIBILITY_KEY)
+                kwargs[RESOLVABLE_NAME_KEY] = kwargs.get(RESOLVABLE_NAME_KEY)
                 return DependencyWrapper(**kwargs)
             else:
                 if len(args) != 1:
                     raise ValueError("dependency registration takes only one dependency argument")
-                return DependencyWrapper(DependencyLifetimeEnum.FUNCTION, None, None, self.dependency_graph_manager)(*args)
+                return DependencyWrapper(DependencyLifetimeEnum.FUNCTION, None, None, self.dependency_graph_manager, None)(*args)
         return dependency

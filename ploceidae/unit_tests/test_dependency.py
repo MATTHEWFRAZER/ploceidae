@@ -2,11 +2,22 @@ from functools import partial
 from itertools import product
 
 import pytest
+from trochilidae.interoperable_filter import interoperable_filter
 
 from ploceidae.dependency_management.cache_item import CacheItem
 from ploceidae.constants import GLOBAL_NAMESPACE
 from ploceidae.utilities.dependency_visibility_enum import DependencyVisibilityEnum
+from ploceidae.dependency_lifetime.dependency_lifetime_enum import DependencyLifetimeEnum
 
+def a():
+    return "a"
+
+def b():
+    return "b"
+
+decorators = [lambda x: x(lifetime="function"), lambda x: x(lifetime="function", resolvable_name="a")]
+functions = [a, b]
+filtered_parameters = interoperable_filter(lambda x: x[0] is not x[1] and not (x[2] is functions[1] and x[0] is decorators[0]), product(decorators, decorators, functions, functions))
 
 class TestDependency:
 
@@ -31,7 +42,7 @@ class TestDependency:
             assert  cache_item in dependency_graph
 
 
-    @pytest.mark.skip(reason="skipped because a will get overwrote")
+    @pytest.mark.skip(reason="skipped because a will get ignored")
     @pytest.mark.xfail(raises=ValueError)
     def test_duplicate_dependency_name_module_level_dependency_resolution_scheme(self, basic_configurator):
         dependency_decorator = basic_configurator.get_dependency_wrapper()
@@ -237,7 +248,7 @@ class TestDependency:
         dependency_decorator = basic_configurator.get_dependency_wrapper()
 
         try:
-            @dependency_decorator(lifetime="function")
+            @dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION)
             def a(): pass
         except Exception as ex:
             pytest.fail("could not decorate function. Ex: {0}".format(ex))
@@ -246,29 +257,56 @@ class TestDependency:
     def test_dependency_application_with_class_that_only_inherits_from_object(self, basic_configurator):
         dependency_decorator = basic_configurator.get_dependency_wrapper()
 
-        @dependency_decorator(lifetime="function")
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION)
         class A(object): pass
 
     @pytest.mark.xfail(raises=ValueError)
     def test_dependency_application_with_class_that_only_inherits_from_object2(self, basic_configurator):
         dependency_decorator = basic_configurator.get_dependency_wrapper()
 
-        @dependency_decorator(lifetime="function")
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION)
         class A: pass
 
     def test_class_object_is_resolvable(self, basic_configurator):
         dependency_decorator = basic_configurator.get_dependency_wrapper()
         container = basic_configurator.get_container()
 
-        @dependency_decorator(lifetime="function")
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION)
         class Resolved(object):
             def __init__(self): pass
 
-        # TODO: allow for lower class conversion so that an argument does not look like this???
+        # we don't use resolvable name here because this is still a possible use case
         def a(Resolved):
             return type(Resolved)
 
         assert container.wire_dependencies(a) is Resolved
+
+    def test_class_object_is_resolvable_by_different_name(self, basic_configurator):
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+        container = basic_configurator.get_container()
+
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION, resolvable_name="resolved")
+        class Resolved(object):
+            def __init__(self): pass
+
+        def a(resolved):
+            return type(resolved)
+
+        assert container.wire_dependencies(a) is Resolved
+
+
+    @pytest.mark.parametrize("decorator_a,decorator_b,function_a,function_b",filtered_parameters)
+    def test_dependency_resolvable_name_conflict(self, decorator_a,decorator_b ,function_a, function_b, basic_configurator):
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+        container = basic_configurator.get_container()
+
+        decorator_a(dependency_decorator)(function_a)
+        decorator_b(dependency_decorator)(function_b)
+
+        def c(a):
+            return a
+
+        assert container.wire_dependencies(c) == function_a()
 
     @staticmethod
     def dependency_application(syntax, application_callback):

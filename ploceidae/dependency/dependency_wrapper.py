@@ -13,7 +13,7 @@ class DependencyWrapper(object):
 
     GARBAGE_COLLECTION_OBSERVER = GarbageCollectionObserver.get_instance()
 
-    def __init__(self, lifetime, group, visibility, dependency_graph_manager):
+    def __init__(self, lifetime, group, visibility, dependency_graph_manager, resolvable_name):
         """
         :param kwargs: lifetime determines how the dependency is delivered (if we cache it or not), allows for grouping dependencies,
         visibility determines the visibility of dependency (True means dependency is visible independent of its module position)
@@ -22,6 +22,7 @@ class DependencyWrapper(object):
         self.group = group
         self.visibility = visibility
         self.dependency_graph_manager = dependency_graph_manager
+        self.resolvable_name = resolvable_name
 
     def __call__(self, dependency_object):
         # TODO: we should move this algorithm somewhere else, question do we want the end caller to be in the dependency graph
@@ -32,7 +33,7 @@ class DependencyWrapper(object):
         self.dependencies = DependencyWrapperHelperMethods.get_dependencies_from_callable_object(dependency_object, *BINDINGS)
         logger.info("register callbacks to invoke after")
         self.dependency_locator = DependencyLocator(self.GARBAGE_COLLECTION_OBSERVER, self.lifetime, dependency_object)
-        self.dependency_name = dependency_object.__name__
+        self.dependency_name = dependency_object.__name__ if self.resolvable_name is None else self.resolvable_name
         try:
             logger.info("adding dependency to dependency graph")
             self.dependency_graph_manager.add_dependency(self, self.visibility)
@@ -56,7 +57,7 @@ class DependencyWrapper(object):
 
     @classmethod
     def get_dependency_without_decoration(cls, dependency_object, visibility, dependency_graph_manager):
-        dependency_wrapper = cls(None, None, visibility, dependency_graph_manager)
+        dependency_wrapper = cls(None, None, visibility, dependency_graph_manager, None)
         dependency_wrapper.dependency_locator = DependencyLocator(cls.GARBAGE_COLLECTION_OBSERVER, DependencyLifetimeEnum.FUNCTION, dependency_object)
         dependency_wrapper.dependencies = DependencyWrapperHelperMethods.get_dependencies_from_callable_object(dependency_object, *BINDINGS)
         dependency_wrapper.dependency_name = dependency_object.__name__
