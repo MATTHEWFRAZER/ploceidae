@@ -8,11 +8,12 @@ logger = logging.getLogger(__name__)
 
 class DependencyLocator(object):
 
-    def __init__(self, garbage_collection_observer, lifetime, dependency_object):
+    def __init__(self, garbage_collection_observer, lifetime, dependency_object, transformation):
         self.garbage_collection_observer = garbage_collection_observer
         self.lifetime = lifetime
         self.services = {}
         self.dependency_object = dependency_object
+        self.transformation = transformation
 
     def locate(self, dependency_lifetime_key, *resolved_dependencies):
         dependency_lifetime_key.init_dependency_lifetime(self.lifetime)
@@ -27,10 +28,12 @@ class DependencyLocator(object):
             else:
                 raise KeyError
         except KeyError:
-            resolved_dependencies = self.dependency_object(*resolved_dependencies)
+            resolved_object = self.dependency_object(*resolved_dependencies)
+            if self.transformation is not None:
+                resolved_object = self.transformation(resolved_object)
             if self.lifetime != DependencyLifetimeEnum.FUNCTION:
-                self.services[dependency_lifetime_key_string] = resolved_dependencies
-            return resolved_dependencies
+                self.services[dependency_lifetime_key_string] = resolved_object
+            return resolved_object
 
     def replace_alt_keys_with_valid_dependency_lifetime_from_instance(self, instance, object_to_wire_up, time_stamp):
         # all this "instance issue stuff" has to do with delivering to an __init__; with an instance lifetime with an __init__,
