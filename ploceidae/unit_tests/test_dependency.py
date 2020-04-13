@@ -308,6 +308,17 @@ class TestDependency:
 
         assert container.wire_dependencies(c) == function_a()
 
+    def test_resolve_module_objects_as_dependencies(self, basic_configurator):
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+        container = basic_configurator.get_container()
+
+        dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION, resolvable_name="pytest")(lambda: pytest)
+
+        def a(pytest):
+            return pytest
+
+        assert container.wire_dependencies(a) is pytest
+
     @staticmethod
     def dependency_application(syntax, application_callback):
         try:
