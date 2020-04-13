@@ -294,6 +294,23 @@ class TestDependency:
 
         assert container.wire_dependencies(a) is Resolved
 
+    def test_class_object_is_resolvable_by_different_name_with_transformation(self, basic_configurator):
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+        container = basic_configurator.get_container()
+
+        def set_attr_for_test(x):
+            x.x = None
+            return x
+
+        @dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION, resolvable_name="resolved", transformation=set_attr_for_test)
+        class Resolved(object):
+            def __init__(self): pass
+
+        def a(resolved):
+            return resolved
+
+        resolved = container.wire_dependencies(a)
+        assert type(resolved) is Resolved and hasattr(resolved, "x")
 
     @pytest.mark.parametrize("decorator_a,decorator_b,function_a,function_b",filtered_parameters)
     def test_dependency_resolvable_name_conflict(self, decorator_a,decorator_b ,function_a, function_b, basic_configurator):
@@ -318,6 +335,19 @@ class TestDependency:
             return pytest
 
         assert container.wire_dependencies(a) is pytest
+
+    def test_filter_with_transformation(self, basic_configurator):
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+        container = basic_configurator.get_container()
+
+        @dependency_decorator(transformation=lambda xs: [x for x in xs if x == 1])
+        def a():
+            return [1,2,3]
+
+        def b(a):
+            return a
+
+        assert container.wire_dependencies(b) == [1]
 
     @staticmethod
     def dependency_application(syntax, application_callback):

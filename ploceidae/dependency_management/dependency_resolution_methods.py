@@ -69,7 +69,7 @@ class DependencyResolutionMethods(object):
         if resolved_args:
             logger.debug("dependency object {0} resolved its arguments".format(cache_item.dependency_name))
             resolved_graph[cache_item.dependency_name] = dependency_object_inner.locate(dependency_lifetime_key,
-                                                                                     *resolved_args)
+                                                                                        *resolved_args)
         else:
             logger.debug("dependency object {0} doesn't have arguments resolved yet".format(dependency_object_inner.dependency_name))
             # do not change the order of these appends, or else endless loop
@@ -125,4 +125,4 @@ class DependencyResolutionMethods(object):
             try:
                 return getargspec(dependency_object.__init__)
             except (TypeError, AttributeError):
-                raise ValueError("could not get parameter information, did you pass in a class that an __init__ from object?")
+                raise ValueError("could not get parameter information, did you pass in a class that inherits an __init__ from object?")
