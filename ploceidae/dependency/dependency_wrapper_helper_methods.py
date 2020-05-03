@@ -13,7 +13,7 @@ class DependencyWrapperHelperMethods(object):
 
     @classmethod
     def decorated_object_is_callable(cls, decorated_object):
-        if not callable(decorated_object):
+        if not (callable(decorated_object) or cls.is_dereferenced_function_callable(decorated_object)):
             raise ValueError("Can not decorate non callables")
 
     @classmethod
@@ -31,6 +31,14 @@ class DependencyWrapperHelperMethods(object):
     @classmethod
     def is_valid_keyword(cls, keyword):
         return keyword in cls.VALID_KWARGS
+
+    @staticmethod
+    def is_dereferenced_function_callable(decorated_object):
+        try:
+            dereferenced_function = getattr(decorated_object, "__func__")
+            return callable(dereferenced_function)
+        except:
+            return False
 
     @staticmethod
     def get_dependencies_from_callable_object(dependency_objects, *dependencies_to_ignore):
