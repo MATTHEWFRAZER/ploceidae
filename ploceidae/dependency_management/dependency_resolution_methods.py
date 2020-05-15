@@ -125,4 +125,4 @@ class DependencyResolutionMethods(object):
             try:
                 return getargspec(dependency_object.__init__)
             except (TypeError, AttributeError):
-                raise ValueError("could not get parameter information, did you pass in a class that inherits an __init__ from object?")
+                raise ValueError("could not get parameter information for dependency, did you pass in a class that inherits an __init__ from object?")

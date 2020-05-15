@@ -53,8 +53,7 @@ class DependencyLocator(object):
 
     def generate_callback_from_instance(self, instance, dependency_lifetime_key_string):
         weak_reference = weakref.ref(instance)
-        # we only need to know about the "phase". if it is stop we want to run this bad boy, we don't care about info
-        def nested(phase, info):
+        def nested():
             return self.remove_stale_references_in_services(weak_reference, dependency_lifetime_key_string)
         return nested
 

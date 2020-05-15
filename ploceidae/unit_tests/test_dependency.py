@@ -1,5 +1,6 @@
 from functools import partial
 from itertools import product
+import sys
 
 import pytest
 from trochilidae.interoperable_filter import interoperable_filter
@@ -253,19 +254,25 @@ class TestDependency:
         except Exception as ex:
             pytest.fail("could not decorate function. Ex: {0}".format(ex))
 
-    @pytest.mark.xfail(raises=ValueError)
+    @pytest.mark.skipif(int(sys.version[0]) < 3, reason="python two will not be able to resolve this type of classes' dependencies")
     def test_dependency_application_with_class_that_only_inherits_from_object(self, basic_configurator):
         dependency_decorator = basic_configurator.get_dependency_wrapper()
 
-        @dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION)
-        class A(object): pass
+        try:
+            @dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION)
+            class A(object): pass
+        except:
+            pytest.fail()
 
-    @pytest.mark.xfail(raises=ValueError)
+    @pytest.mark.skipif(int(sys.version[0]) < 3, reason="python two will not be able to resolve this type of classes' dependencies")
     def test_dependency_application_with_class_that_only_inherits_from_object2(self, basic_configurator):
         dependency_decorator = basic_configurator.get_dependency_wrapper()
 
-        @dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION)
-        class A: pass
+        try:
+            @dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION)
+            class A: pass
+        except:
+            pytest.fail()
 
     def test_class_object_is_resolvable(self, basic_configurator):
         dependency_decorator = basic_configurator.get_dependency_wrapper()
@@ -348,6 +355,41 @@ class TestDependency:
             return a
 
         assert container.wire_dependencies(b) == [1]
+
+    @pytest.mark.xfail(raises=ValueError)
+    def test_dependency_wrapper_raises_exception_when_wrapping_multiple_dependency_objects(self, basic_configurator):
+        dependency = basic_configurator.get_dependency_wrapper()
+
+        d = dependency(lifetime=DependencyLifetimeEnum.INSTANCE)
+
+        @d
+        def a():
+            return type("A", (), {})()
+
+        @d
+        def b():
+            return type("B", (), {})()
+
+    @pytest.mark.xfail(raises=ValueError)
+    def test_dependency_wrapper_raises_exception_when_wrapping_multiple_dependency_objects2(self, basic_configurator):
+        dependency = basic_configurator.get_dependency_wrapper()
+
+        d = dependency(lifetime=DependencyLifetimeEnum.INSTANCE)
+
+        @d
+        def a():
+            return type("A", (), {})()
+
+        d(a)
+
+    @pytest.mark.xfail(raises=ValueError)
+    def test_dependency_wrapper_raises_exception_when_wrapping_multiple_dependency_objects2(self, basic_configurator):
+        dependency = basic_configurator.get_dependency_wrapper()
+
+        d = dependency(lifetime=DependencyLifetimeEnum.INSTANCE)
+
+        d(a)
+        d(a)
 
     @staticmethod
     def dependency_application(syntax, application_callback):
