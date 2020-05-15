@@ -29,6 +29,7 @@ class DependencyWrapper(object):
         self.dependency_graph_manager = dependency_graph_manager
         self.resolvable_name = resolvable_name
         self.transformation = transformation
+        self.wrapped_count = 0
 
     def __call__(self, dependency_object):
         # TODO: we should move this algorithm somewhere else, question do we want the end caller to be in the dependency graph
@@ -45,6 +46,9 @@ class DependencyWrapper(object):
             self.dependency_graph_manager.add_dependency(self, self.visibility)
         except ValueError as ex:
             logger.error("problem with adding dependency to dependency graph: {0}".format(ex))
+        self.wrapped_count += 1
+        if self.wrapped_count > 1:
+            raise ValueError("dependency wrapper can only wrap one dependency object once")
         return dependency_object
 
     def locate(self, dependency_lifetime_key, *resolved_dependencies):

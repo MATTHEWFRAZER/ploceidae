@@ -1,1 +1,1 @@
-from ploceidae.constants.constants import GLOBAL_NAMESPACE, BINDINGS, PHASE_STOP
+from ploceidae.constants.constants import GLOBAL_NAMESPACE, BINDINGS
