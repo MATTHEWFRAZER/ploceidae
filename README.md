@@ -92,7 +92,7 @@ configurator = BasicConfigurator()
 container = configurator.get_container()
 dependency = configurator.get_dependency_wrapper()
 
-@dependency(resolvable_nam="class_name")
+@dependency(resolvable_name="class_name")
 class ClassName(object): pass
 
 def depend_on_class(class_name):
