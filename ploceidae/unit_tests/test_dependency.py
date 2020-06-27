@@ -243,6 +243,33 @@ class TestDependency:
 
         container.wire_dependencies(a)
 
+    def test_dependency_can_be_used_as_orignally_defined_after_decoration(self, basic_configurator):
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+        container = basic_configurator.get_container()
+        expected_value = 5
+
+        @dependency_decorator
+        def a():
+            return expected_value
+
+        assert a() == expected_value
+        assert container.wire_dependencies(a) == expected_value
+
+    def test_dependency_can_be_used_as_orignally_defined_after_decoration2(self, basic_configurator):
+        dependency_decorator = basic_configurator.get_dependency_wrapper()
+        container = basic_configurator.get_container()
+        expected_value = 5
+
+        @dependency_decorator
+        def a():
+            return expected_value
+
+        @dependency_decorator
+        def b(a):
+            return a
+
+        assert b(expected_value) == expected_value
+        assert container.wire_dependencies(b) == expected_value
 
     def test_dependency_application_with_dependency_lifetime_passed_as_argument(self, basic_configurator):
 
