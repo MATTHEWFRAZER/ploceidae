@@ -48,7 +48,6 @@ class TestGarbageCollection:
                 pass
 
         b =  container.wire_dependencies(B)
-        # subtle implication of del b
         del b
         gc.collect()
 
@@ -101,10 +100,7 @@ class TestGarbageCollection:
         # no collection allowed
         assert b
 
-    @pytest.mark.skip(reason="gc hook stuff not ready")
-    def test_locator_gets_deleted_from_cache_when_all_services_are_gone(self): pass
-
-    def test_one_locator_gets_deleted_from_multiple_in_cached(self, basic_configurator, monkey_patcher):
+    def test_session_locator_does_not_get_deleted_from_cache(self, basic_configurator, monkey_patcher):
         monkey_patcher()
 
         container = basic_configurator.get_container()
