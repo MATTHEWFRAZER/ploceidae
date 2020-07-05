@@ -3,7 +3,7 @@ from itertools import chain
 from operator import getitem
 
 from ploceidae.constants import GLOBAL_NAMESPACE
-from ploceidae.dependency_graph_manager.module_caches import ModuleCaches
+from ploceidae.utilities.module_caches import ModuleCaches
 
 class DependencyGraph(object):
     def __init__(self):
@@ -59,12 +59,12 @@ class DependencyGraph(object):
         all_items = (self.module_caches.items(), self.global_cache.items(), self.builtins_cache.items())
         return list(chain.from_iterable(all_items))
 
-    def __general_cache_check(self, cache_item, to_call_on_caches):
+    def __general_cache_check(self, cache_item, operation):
         if cache_item in self.module_caches:
-            return to_call_on_caches(self.module_caches, cache_item)
+            return operation(self.module_caches, cache_item)
         elif cache_item.dependency_name in self.global_cache:
-            return to_call_on_caches(self.global_cache, cache_item.dependency_name)
+            return operation(self.global_cache, cache_item.dependency_name)
         elif cache_item.dependency_name in self.builtins_cache:
-            return to_call_on_caches(self.builtins_cache, cache_item.dependency_name)
+            return operation(self.builtins_cache, cache_item.dependency_name)
         else:
             raise KeyError("could not find cache_item: {0}::{1}".format(cache_item.dependency_module, cache_item.dependency_name))

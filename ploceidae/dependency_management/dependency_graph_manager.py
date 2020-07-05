@@ -1,9 +1,9 @@
 from threading import Lock
 
-from ploceidae.dependency_graph_manager.dependency_graph_cycle_check_methods import DependencyGraphCycleCheckMethods
-from ploceidae.dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
-from ploceidae.dependency_graph_manager.cache_item import CacheItem
-from ploceidae.dependency_graph_manager.resolved_dependencies import ResolvedDependencies
+from ploceidae.dependency_management.dependency_graph_cycle_check_methods import DependencyGraphCycleCheckMethods
+from ploceidae.dependency_management.dependency_resolution_methods import DependencyResolutionMethods
+from ploceidae.dependency_management.cache_item import CacheItem
+from ploceidae.dependency_management.resolved_dependencies import ResolvedDependencies
 from ploceidae.utilities.dependency_visibility_enum import DependencyVisibilityEnum
 
 
@@ -13,7 +13,7 @@ class DependencyGraphManager(DependencyGraphCycleCheckMethods, DependencyResolut
         self.dependency_graph = dependency_graph
         self.lock = Lock()
 
-    def add_dependency(self, dependency_wrapper, visibility=DependencyVisibilityEnum.Module):
+    def add_dependency(self, dependency_wrapper, visibility=DependencyVisibilityEnum.MODULE):
         cache_item = CacheItem.cache_item_factory_method(dependency_wrapper, visibility)
         with self.lock:
             if cache_item in self.dependency_graph:

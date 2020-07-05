@@ -2,7 +2,7 @@ import logging
 from pprint import pformat
 
 from ploceidae.constants import BINDINGS
-from ploceidae.dependency_graph_manager.dependency_resolution_methods import DependencyResolutionMethods
+from ploceidae.dependency_management.dependency_resolution_methods import DependencyResolutionMethods
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class PartialInjection(object):
             logger.debug("to {0} fully inject dependencies: \n{1}".format(self.dependent_object, pformat(dependencies_to_be_injected)))
             return self.dependent_object(*dependencies_to_be_injected)
         except TypeError as ex:
-            raise TypeError("argument list could not have dependencies resolved to it. Did you decorate your target dependent with function with a different argument list? ex: {0}".format(ex))
+            raise ValueError("argument list could not have dependencies resolved to it. Did you decorate your target dependent with function with a different argument list? ex: {0}".format(ex))
 
     def get_dependencies_to_be_injected(self, dependencies_to_be_injected):
         zipped_dependencies_to_be_injected = zip(self.dependencies_to_ignore, dependencies_to_be_injected)
