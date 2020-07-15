@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 
 class DependencyResolutionMethods(object):
 
-    def resolve_dependencies_by_group(self, dependency_object, group, time_stamp):
+    def resolve_dependencies_by_group(self, dependency_wrapper, group, time_stamp):
         logger.info("resolving dependencies as group")
         dependency_retrieval_method = lambda: [name for name, dependency in self.dependency_graph.items() if dependency.group == group]
-        return self.dependency_resolution_algorithm(dependency_object, dependency_retrieval_method, time_stamp)
+        return self.dependency_resolution_algorithm(dependency_wrapper, dependency_retrieval_method, time_stamp)
 
     def resolve_dependencies_inner(self, dependency_wrapper, time_stamp, *dependencies_to_ignore):
         logger.info("resolving dependencies")
@@ -26,7 +26,7 @@ class DependencyResolutionMethods(object):
         dependency_lifetime_key.init_alt_key(time_stamp)
         with self.lock:
             dependencies = dependency_retrieval_method()
-            ret =  self.resolve_dependencies_as_list(list(dependencies), dependency_lifetime_key)
+            ret =  self.resolve_dependencies_as_list(dependency_wrapper.dependency_name, list(dependencies), dependency_lifetime_key)
             return ret
 
     def replace_alt_keys_with_valid_dependency_lifetime_from_instance(self, instance, object_to_wire_up, time_stamp):
@@ -34,12 +34,12 @@ class DependencyResolutionMethods(object):
             for dependency in self.dependency_graph.values():
                 dependency.replace_alt_keys_with_valid_dependency_lifetime_from_instance(instance, object_to_wire_up, time_stamp)
 
-    def resolve_dependencies_as_list(self, dependencies, dependency_lifetime_key):
-        resolved_graph = self.generate_resolved_dependency_graph(dependencies, dependency_lifetime_key)
+    def resolve_dependencies_as_list(self, dependent_name, dependencies, dependency_lifetime_key):
+        resolved_graph = self.generate_resolved_dependency_graph(dependent_name, dependencies, dependency_lifetime_key)
         return self.resolve_arguments_to_dependencies(dependencies, resolved_graph)
 
-    def generate_resolved_dependency_graph(self, dependencies, dependency_lifetime_key):
-        dependency_stack = [dependencies]
+    def generate_resolved_dependency_graph(self, dependent_name, dependencies, dependency_lifetime_key):
+        dependency_stack = [(dependent_name, dependencies)]
         resolved_graph = {}
         while dependency_stack:
             self.resolve_dependency_to_dependency_graph(dependency_lifetime_key, resolved_graph, dependency_stack)
@@ -47,13 +47,13 @@ class DependencyResolutionMethods(object):
         return resolved_graph
 
     def resolve_dependency_to_dependency_graph(self, dependency_lifetime_key, resolved_graph, dependency_stack):
-        dependencies = dependency_stack.pop()
+        dependent_name, dependencies = dependency_stack.pop()
         for dependency_name in dependencies:
-            dependency_wrapper = self.find_dependency_object(dependency_name, dependency_lifetime_key)
+            dependency_wrapper = self.find_dependency_wrapper(dependency_name, dependency_lifetime_key)
             if dependency_wrapper is None:
                 # we can't validate dependencies before actual dependency resolution, because we might add a dependency
                 # after something declares it in its argument list
-                raise ValueError("{0} doesn't exist".format(dependency_name))
+                raise ValueError("{0} doesn't exist. {1} was attempting to resolve {0} as a dependency".format(dependency_name, dependent_name))
             cache_item = CacheItem(dependency_wrapper.dependency_object, dependency_wrapper.dependency_name)
             # if there is no need to resolve arguments
             if not self.dependency_graph[cache_item].dependencies:
@@ -72,21 +72,23 @@ class DependencyResolutionMethods(object):
                                                                                         *resolved_args)
         else:
             logger.debug("dependency object {0} doesn't have arguments resolved yet".format(dependency_object_inner.dependency_name))
-            # do not change the order of these appends, or else endless loop
-            dependency_stack.append([dependency_object_inner.dependency_name])
-            dependency_stack.append(dependency_object_inner.dependencies)
+            # do not change the order of these appends, or else endless loop!!!
+            dependency_stack.append((cache_item.dependency_name, [dependency_object_inner.dependency_name]))
+            dependency_stack.append((dependency_object_inner.dependency_name, dependency_object_inner.dependencies))
 
-    def find_dependency_object(self, dependency_name, dependency_lifetime_key):
-        dependency_wrapper = self.resolve_dependency_object_by_module(dependency_name, dependency_lifetime_key)
-        return dependency_wrapper if dependency_wrapper is not None else self.resolve_dependency_object_in_dependency_graph(dependency_name)
+    def find_dependency_wrapper(self, dependency_name, dependency_lifetime_key):
+        # first we attempt to find any dependency declared with module visibility
+        dependency_wrapper = self.resolve_dependency_wrapper_by_module(dependency_name, dependency_lifetime_key)
+        # if we do not find any dependencies declared with module visibility we attempt to find a dependency by global visibility
+        return dependency_wrapper if dependency_wrapper is not None else self.resolve_dependency_wrapper_in_dependency_graph(dependency_name)
 
-    def resolve_dependency_object_by_module(self, dependency_name, dependency_lifetime_key):
+    def resolve_dependency_wrapper_by_module(self, dependency_name, dependency_lifetime_key):
         for dependency_wrapper in self.dependency_graph.values():
             if self.is_dependency_found_by_module(dependency_wrapper, dependency_name, dependency_lifetime_key):
                 logger.debug("found dependency_name object with module match {0}".format(dependency_wrapper.dependency_name))
                 return dependency_wrapper
 
-    def resolve_dependency_object_in_dependency_graph(self, dependency_name):
+    def resolve_dependency_wrapper_in_dependency_graph(self, dependency_name):
         for dependency_wrapper in self.dependency_graph.values():
             if dependency_wrapper.dependency_name == dependency_name:
                 logger.debug("found dependency_name object {0}".format(dependency_wrapper.dependency_name))
