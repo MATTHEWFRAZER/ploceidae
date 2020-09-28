@@ -37,7 +37,7 @@ class DependencyWrapperHelperMethods(object):
         try:
             dereferenced_function = getattr(decorated_object, "__func__")
             return callable(dereferenced_function)
-        except:
+        except Exception:
             return False
 
     @staticmethod

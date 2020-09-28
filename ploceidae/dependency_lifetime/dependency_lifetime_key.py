@@ -52,7 +52,7 @@ class DependencyLifetimeKey(object):
             instance_binding = "null"
         try:
             used_name = self.dependency_object.__qualname__
-        except:
+        except Exception:
             used_name = str(self.dependency_object)
         return "{0}::{1}".format(instance_binding, used_name)
 

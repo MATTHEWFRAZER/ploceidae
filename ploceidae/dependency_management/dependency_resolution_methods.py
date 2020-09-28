@@ -105,7 +105,7 @@ class DependencyResolutionMethods(object):
         for dependency_name in dependencies:
             try:
                 resolved_arguments.append(resolved_graph[dependency_name])
-            except:
+            except Exception:
                 return []
         logger.debug("resolving dependencies as arguments to dependency object {0}".format(dependencies))
         return resolved_arguments
