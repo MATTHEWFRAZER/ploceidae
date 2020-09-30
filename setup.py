@@ -22,7 +22,7 @@ setup(name=package_name,
       packages=find_packages(),
       include_package_data=False,
       zip_safe=False,
-      version="1.0.17",
+      version="1.0.18",
       classifiers=[
             'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3.4',
