@@ -288,7 +288,7 @@ class TestDependency:
         try:
             @dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION)
             class A(object): pass
-        except:
+        except Exception:
             pytest.fail()
 
     @pytest.mark.skipif(int(sys.version[0]) < 3, reason="python two will not be able to resolve this type of classes' dependencies")
@@ -298,7 +298,7 @@ class TestDependency:
         try:
             @dependency_decorator(lifetime=DependencyLifetimeEnum.FUNCTION)
             class A: pass
-        except:
+        except Exception:
             pytest.fail()
 
     def test_class_object_is_resolvable(self, basic_configurator):
