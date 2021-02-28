@@ -1,0 +1,39 @@
+name: Pull Request Action
+
+# Controls when the action will run (on pull request)
+on: [pull_request]
+
+jobs:
+
+  # build our project
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['2.7' '3.4', '3.5', '3.6', '3.7', '3.8', '3.9']
+
+    name: Run with ${{ matrix.python-version }}
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: verify branch name
+        # if branch name is not of the form <change type>-<version increment type>-<project>-<ticket number> or master or develop, we fail the build
+        # sorry don't know multi-line conditionals
+        run: "! $( [[ $(git branch --show-current) =~ ^(bugfix|task|hotfix)-(major|minor|patch)-PLO-[1-9][0-9]*$ ]] || [[ $(git branch --show-current) == develop ]] || [[ $(git branch --show-current) == master ]] )"
+
+      - name: install
+        run: |
+          pip install --upgrade setuptools
+          pip install -r requirements.txt
+          pip install tox
+
+      - name: run tox
+        run: tox
+      
+
