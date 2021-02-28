@@ -4,6 +4,8 @@ from setuptools import setup, find_packages
 
 package_name = "ploceidae"
 requirements_file = "requirements.txt"
+build_version_txt = "build_version.txt"
+
 if not os.path.exists(requirements_file):
       # when we deploy this, this is where requirements will be
       requirements_file = os.path.join("{0}.egg-info".format(package_name), "requires.txt")
@@ -11,6 +13,11 @@ if not os.path.exists(requirements_file):
 with open(requirements_file) as req:
     # handles custom package repos
     requirements = [requirement for requirement in req.read().splitlines() if not requirement.startswith("-")]
+
+with open(build_version_txt) as build_file:
+      release_number = build_file.readline()
+      build_number_split = release_number.split(".")
+      build_number = "{0}.{1}.{2}.{3}".format(*build_number_split)
 
 setup(name=package_name,
       install_requires=requirements,
@@ -22,13 +29,15 @@ setup(name=package_name,
       packages=find_packages(),
       include_package_data=False,
       zip_safe=False,
-      version="1.0.17",
+      version=build_number,
       classifiers=[
             'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.9',
             ]
       )
 

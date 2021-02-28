@@ -1,0 +1,49 @@
+name: Merge To Master
+
+# Controls when the action will run (on push to master; in our case, this should only ever be a merge)
+on:
+  pull_request:
+    types: [closed]
+    branches: [master]
+
+jobs:
+
+  # build our project
+  build:
+    if: github.event.pull_request.merged == true
+
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    name: Run with after merge to master
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: echo current branch
+        run : echo $(git branch --show-current)
+
+      - name: install
+        run: |
+          pip install --upgrade setuptools
+          pip install -r requirements.txt
+          pip install tox
+
+      - name: run tox
+        run: tox
+      
+      - name: tag commit based off of version
+        run: |
+          tag_name="$(./build_scripts/generate_rc_build_number.py)-tag"
+          git tag $tag_name
+          git push origin $tag_name
+        
+      - name: create rc branch based off of version.txt
+        run: |
+          branch_name=$(./build_scripts/generate_rc_build_number.py)
+          git branch $branch_name
+          git push --set-upstream origin $branch_name

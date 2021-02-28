@@ -1,0 +1,41 @@
+name: Deploy A Release Candidate To Production
+
+on: 
+  workflow_dispatch:
+    inputs:
+      release_candidate_build:
+        description: 'Select the release candidate you would like to promote to production'     
+        required: true
+      
+jobs:
+
+  # build our project
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest      
+    
+    steps:
+    
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: master
+        
+      - name: create release branch based off of version and deploy to production
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          new_tag_name="$(echo "${{ github.event.inputs.release_candidate_build }}" | sed "s/rc/release/g" | xargs ./build_scripts/increment_build_number.py)-tag"
+          git checkout ${{ github.event.inputs.release_candidate_build }}-tag
+          git tag $new_tag_name
+          git push origin $new_tag_name
+          branch_name=$(echo "${{ github.event.inputs.release_candidate_build }}" | sed "s/rc/release/g" | xargs ./build_scripts/increment_build_number.py)
+          git branch $branch_name
+          git push --set-upstream origin $branch_name
+          python -m pip install --upgrade pip
+          pip install setuptools wheel twine
+          git checkout $branch_name
+          echo $branch_name | sed "s/-release//g" > build_version.txt
+          python setup.py sdist bdist_wheel
+          python -m twine upload dist/*
