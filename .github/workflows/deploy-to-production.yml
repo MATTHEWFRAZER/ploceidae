@@ -27,21 +27,17 @@ jobs:
           git checkout ${{ github.event.inputs.release_candidate_build }}
           git tag $tag_name
         
-      - name: create release branch based off of version
-        run: |
-          branch_name=$(echo "${{ github.event.inputs.release_candidate_build }}" | sed "s/rc/release/g" | xargs ./build_scripts/increment_build_number.py)
-          git branch $branch_name
-          git push --set-upstream origin $branch_name
-
-      - name: deploy to production
+      - name: create release branch based off of version and deploy to production
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
+          branch_name=$(echo "${{ github.event.inputs.release_candidate_build }}" | sed "s/rc/release/g" | xargs ./build_scripts/increment_build_number.py)
+          git branch $branch_name
+          git push --set-upstream origin $branch_name
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
-          branch_name=$(echo "${{ github.event.inputs.release_candidate_build }}" | sed "s/rc/release/g" | xargs ./build_scripts/increment_build_number.py)
           git checkout $branch_name
-          echo $branch_name > build_version.txt
+          echo $branch_name | sed "s/-release//g" > build_version.txt
           python setup.py sdist bdist_wheel
           twine upload dist/*
