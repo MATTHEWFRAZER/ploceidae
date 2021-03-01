@@ -37,7 +37,10 @@ jobs:
         run: tox
       
       - name: tag commit based off of version
-        run: git tag "$(./build_scripts/generate_rc_build_number.py)-tag"
+        run: |
+          tag_name="$(./build_scripts/generate_rc_build_number.py)-tag"
+          git tag $tag_name
+          git push origin $tag_name
         
       - name: create rc branch based off of version.txt
         run: |

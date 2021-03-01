@@ -23,8 +23,9 @@ jobs:
       # we are tagging
       - name: tag commit based off of version
         run: |
+          tag_name="$(echo "${{ github.event.inputs.release_candidate_build }}" | sed "s/rc/release/g" | xargs ./build_scripts/increment_build_number.py)-tag"
           git checkout ${{ github.event.inputs.release_candidate_build }}
-          git tag "$(echo "${{ github.event.inputs.release_candidate_build }}" | sed "s/rc/release/g" | xargs ./build_scripts/increment_build_number.py)-tag"
+          git tag $tag_name
         
       - name: create release branch based off of version
         run: |
