@@ -22,7 +22,7 @@ except ImportError:
 split_build_number = args.release_number.split(".")
 build_number_prefix = ".".join(split_build_number[:-1])
 build_number = int(split_build_number[-1])
-new_build_number = "{0}.{2}".format(build_number_prefix, build_number)
+new_build_number = "{0}.{1}".format(build_number_prefix, build_number)
 
 # TODO: revisit
 # while ideally, I would like separation between one liners and scripts in our build process
@@ -30,6 +30,6 @@ new_build_number = "{0}.{2}".format(build_number_prefix, build_number)
 # because it is done this way, it forces us to pay attention to the order in which we call into this script
 while subprocess.call(["git", "rev-parse", "--verify", new_build_number], stdout=DEVNULL, stderr=DEVNULL) == 0:
     build_number += 1
-    new_build_number = "{0}.{2}".format(build_number_prefix, build_number)
+    new_build_number = "{0}.{1}".format(build_number_prefix, build_number)
 
 print(new_build_number)
