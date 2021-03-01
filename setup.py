@@ -14,9 +14,10 @@ with open(requirements_file) as req:
     # handles custom package repos
     requirements = [requirement for requirement in req.read().splitlines() if not requirement.startswith("-")]
 
-with open(build_version_txt) as version:
-      release_number = version.readline()
+with open(build_version_txt) as build_file:
+      release_number = build_file.readline()
       build_number_split = release_number.split()
+      print(build_number_split)
       build_number = "{0}.{1}.{2}.{3}".format(*build_number_split)
 
 setup(name=package_name,
