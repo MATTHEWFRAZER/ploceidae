@@ -24,6 +24,9 @@ jobs:
         with:
           python-version: 3.9
 
+      - name: echo current branch
+        run : echo $(git branch --show-current)
+
       - name: verify branch name
         # if branch name is not of the form <change type>-<version increment type>-<project>-<ticket number> or master or develop, we fail the build
         # sorry don't know multi-line conditionals
