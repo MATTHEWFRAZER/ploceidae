@@ -40,4 +40,4 @@ jobs:
           git checkout $branch_name
           echo $branch_name | sed "s/-release//g" > build_version.txt
           python setup.py sdist bdist_wheel
-          twine upload dist/*
+          python -m twine upload dist/*
