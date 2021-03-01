@@ -17,7 +17,7 @@ with open(requirements_file) as req:
 with open(build_version_txt) as version:
       release_number = version.readline()
       build_number_split = release_number.split()
-      build_number = "{0}.{1}.{2}.{3}".format(build_number_split[0], build_number_split[1], build_number_split[2], build_number_split[-1])
+      build_number = "{0}.{1}.{2}.{3}".format(*build_number_split)
 
 setup(name=package_name,
       install_requires=requirements,
