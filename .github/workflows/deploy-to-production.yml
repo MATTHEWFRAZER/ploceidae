@@ -21,16 +21,18 @@ jobs:
           fetch-depth: 0
           ref: master
         
+      # we are assuming we only need one build of the same code, thus we do a rev-parse --verify to check if there hasn't already been a release
       - name: create release branch based off of version and deploy to production
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: |
-          new_tag_name="$(echo "${{ github.event.inputs.release_candidate_build }}" | sed "s/rc/release/g" | xargs ./build_scripts/increment_build_number.py)-tag"
+        run:
+          new_tag_name="$(echo "${{ github.event.inputs.release_candidate_build }}" | sed "s/rc/release/g")-tag"
+          [ ! $(git rev-parse --verify $new_tag_name) ]
           git checkout ${{ github.event.inputs.release_candidate_build }}-tag
           git tag $new_tag_name
           git push origin $new_tag_name
-          branch_name=$(echo "${{ github.event.inputs.release_candidate_build }}" | sed "s/rc/release/g" | xargs ./build_scripts/increment_build_number.py)
+          branch_name=$(echo "${{ github.event.inputs.release_candidate_build }}" | sed "s/rc/release/g")
           git branch $branch_name
           git push --set-upstream origin $branch_name
           python -m pip install --upgrade pip
