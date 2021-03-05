@@ -26,7 +26,7 @@ jobs:
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run:
+        run: |
           new_tag_name="$(echo "${{ github.event.inputs.release_candidate_build }}" | sed "s/rc/release/g")-tag"
           [ ! $(git rev-parse --verify $new_tag_name) ]
           git checkout ${{ github.event.inputs.release_candidate_build }}-tag
