@@ -38,6 +38,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
           git checkout $branch_name
-          echo $branch_name | sed "s/-release//g" > ./build/build_version.txt
+          mkdir build && echo $branch_name | sed "s/-release//g" > ./build/build_version.txt
           python setup.py sdist bdist_wheel
           python -m twine upload dist/*
