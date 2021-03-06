@@ -18,7 +18,7 @@ if not os.path.exists(build_version_txt):
       with open(os.path.join("{0}.egg-info".format(package_name), "PKG-INFO")) as pkg_info:
             pkg_info.readline()
             pkg_info.readline()
-            build_number = pkg_info.split(":")[1]
+            build_number = pkg_info.readline().split(":")[1]
 
 else:
       with open(build_version_txt) as build_file:
