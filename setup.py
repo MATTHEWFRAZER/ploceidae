@@ -14,7 +14,7 @@ with open(requirements_file) as req:
     # handles custom package repos
       requirements = [requirement for requirement in req.read().splitlines() if not requirement.startswith("-")]
 
-if not os.path.exists(requirements_file):
+if not os.path.exists(build_version_txt):
       with open(os.path.join("{0}.egg-info".format(package_name), "PKG-INFO")) as pkg_info:
             pkg_info.readline()
             pkg_info.readline()
