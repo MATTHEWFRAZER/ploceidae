@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 package_name = "ploceidae"
 requirements_file = "requirements.txt"
-build_version_txt = "build_version.txt"
+build_version_txt = os.path.join("build", "build_version.txt")
 
 if not os.path.exists(requirements_file):
       # when we deploy this, this is where requirements will be
@@ -38,8 +38,7 @@ setup(name=package_name,
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9',
-            ],
-      package_data={package_name: ['build_version.txt']}
+            ]
       )
 
 
