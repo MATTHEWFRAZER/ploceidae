@@ -15,12 +15,13 @@ TRANSFORMATION_KEY = "transformation"
 
 class BasicConfigurator(object):
 
-    def __init__(self, dependency_graph_manager=None):
+    def __init__(self, dependency_graph_manager=None, ploceidae_setup_module=None):
         dependency_graph = DependencyGraph()
         self.dependency_graph_manager = DependencyGraphManager(dependency_graph) if dependency_graph_manager is None else dependency_graph_manager
+        self.ploceidae_setup_module = ploceidae_setup_module
 
     def get_container(self):
-        return Container(self.dependency_graph_manager)
+        return Container(self.dependency_graph_manager, ploceidae_setup_module=self.ploceidae_setup_module)
 
     def get_dependency_wrapper(self):
         def dependency(*args, **kwargs):
