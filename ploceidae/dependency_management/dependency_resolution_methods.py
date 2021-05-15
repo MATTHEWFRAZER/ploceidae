@@ -1,6 +1,7 @@
 import logging
-from inspect import getargspec
 from pprint import pformat
+
+from trochilidae.interoperable_get_arg_spec import interoperable_get_arg_spec
 
 from ploceidae.dependency_lifetime.dependency_lifetime_key import DependencyLifetimeKey
 from ploceidae.dependency_management.cache_item import CacheItem
@@ -121,10 +122,10 @@ class DependencyResolutionMethods(object):
     @classmethod
     def get_argspec(cls, dependency_object):
         try:
-            return getargspec(dependency_object)
+            return interoperable_get_arg_spec(dependency_object)
         except TypeError:
 
             try:
-                return getargspec(dependency_object.__init__)
+                return interoperable_get_arg_spec(dependency_object.__init__)
             except (TypeError, AttributeError):
                 raise ValueError("could not get parameter information for dependency, did you pass in a class that inherits an __init__ from object?")
