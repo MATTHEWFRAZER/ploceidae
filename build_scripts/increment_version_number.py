@@ -23,8 +23,11 @@ if len(version_numbers) != 3:
     raise ValueError("version.txt is malformed. contents of version.txt: {0}".format(version))
 
 if args.version_increment == "major":
+    version_numbers[2] = 0
+    version_numbers[1] = 0
     version_numbers[0] += 1
 elif args.version_increment == "minor":
+    version_numbers[2] = 0
     version_numbers[1] += 1
 elif args.version_increment == "patch":
     version_numbers[2] += 1
