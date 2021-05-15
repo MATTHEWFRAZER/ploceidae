@@ -30,10 +30,10 @@ jobs:
         run: |
           pip install --upgrade setuptools
           pip install -r requirements.txt
-          pip install tox
+          pip install pytest
 
-      - name: run tox
-        run: tox
+      - name: run pytest
+        run: pytest ploceidae/unit_tests
 
       # HACK ALERT: awk was being absolutely retarded... It returns the incorrect column for git log. I think it has to do with the string containing a "/"
       # we find the merge commit as it will be first commit with a BOBA branch as a ref and pull the ref from that commit
