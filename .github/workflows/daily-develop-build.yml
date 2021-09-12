@@ -6,6 +6,11 @@ on:
   # everyday at noon
   - cron: "0 12 * * *"
 
+# This locks out merge-to-develop so we don't pull in a state that is missing a commit, specifically the version commit.
+# It could be confusing if we try to debug this workflow and develop having a state that is invalid
+concurrency:
+    group: develop-lock
+
 jobs:
 
   # build our project

@@ -13,7 +13,7 @@ version_path = "version.txt"
 build_type = "rc"
 
 with open(version_path, "r") as f:
-    version = f.readline()
+    version = f.readline().strip()
 
 build_number = 0
 tag = "{0}-{1}.{2}".format(version, build_type, build_number)
