@@ -15,7 +15,7 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    name: Run with after merge to master
+    name: Run after merge to master
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
@@ -31,10 +31,10 @@ jobs:
         run: |
           pip install --upgrade setuptools
           pip install -r requirements.txt
-          pip install tox
+          pip install pytest
 
-      - name: run tox
-        run: tox
+      - name: run pytest
+        run: pytest ploceidae/unit_tests
       
       - name: tag commit based off of version
         run: |

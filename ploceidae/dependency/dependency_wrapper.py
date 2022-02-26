@@ -38,14 +38,15 @@ class DependencyWrapper(object):
         DependencyWrapperHelperMethods.input_validation_for_dependency_object(dependency_object)
 
         self.dependencies = DependencyWrapperHelperMethods.get_dependencies_from_callable_object(dependency_object, *BINDINGS)
-        logger.info("register callbacks to invoke after")
+        #logger.info("register callbacks to invoke after")
         self.dependency_locator = DependencyLocator(self.GARBAGE_COLLECTION_OBSERVER, self.lifetime, dependency_object, self.transformation)
         self.dependency_name = dependency_object.__name__ if self.resolvable_name is None else self.resolvable_name
         try:
-            logger.info("adding dependency to dependency graph")
+            #logger.info("adding dependency to dependency graph")
             self.dependency_graph_manager.add_dependency(self, self.visibility)
         except ValueError as ex:
-            logger.error("problem with adding dependency to dependency graph: {0}".format(ex))
+            pass
+            #logger.error("problem with adding dependency to dependency graph: {0}".format(ex))
         self.wrapped_count += 1
         if self.wrapped_count > 1:
             raise ValueError("dependency wrapper can only wrap one dependency object once")

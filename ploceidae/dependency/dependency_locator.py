@@ -18,7 +18,7 @@ class DependencyLocator(object):
     def locate(self, dependency_lifetime_key, *resolved_dependencies):
         dependency_lifetime_key.init_dependency_lifetime(self.lifetime)
         dependency_lifetime_key_string = str(dependency_lifetime_key)
-        logger.debug("locating service {0} on dependency {1}".format(str(dependency_lifetime_key), self.dependency_object))
+        #logger.debug("locating service {0} on dependency {1}".format(str(dependency_lifetime_key), self.dependency_object))
         # need to check alt_key because __init__ and possibly other methods won't get instance until wired but
         # are still valid
         try:
@@ -42,9 +42,9 @@ class DependencyLocator(object):
         new_dependency_lifetime_key = DependencyLifetimeKey(instance)
         new_dependency_lifetime_key.init_dependency_lifetime(DependencyLifetimeEnum.INSTANCE)
         for key, _ in self.services.copy().items():
-            logger.info("key {0} ==== key string {1}".format(key, dependency_lifetime_key_string))
+            #logger.info("key {0} ==== key string {1}".format(key, dependency_lifetime_key_string))
             if key == dependency_lifetime_key_string:
-                logger.debug("replacing alt key {0} with new key {1}".format(dependency_lifetime_key_string, str(new_dependency_lifetime_key)))
+                #logger.debug("replacing alt key {0} with new key {1}".format(dependency_lifetime_key_string, str(new_dependency_lifetime_key)))
                 new_dependency_lifetime_key_string = str(new_dependency_lifetime_key)
                 self.services[new_dependency_lifetime_key_string] = self.services[dependency_lifetime_key_string]
                 del self.services[dependency_lifetime_key_string]

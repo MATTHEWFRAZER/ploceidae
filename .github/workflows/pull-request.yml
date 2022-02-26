@@ -1,7 +1,11 @@
-name: Pull Request Action
+name: Pull Request Build
 
 # Controls when the action will run (on pull request)
 on: [pull_request]
+
+# locks out post-version-increment
+concurrency:
+    group: develop-lock
 
 jobs:
 
@@ -17,6 +21,14 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
+      # HACK ALERT: required to be able to switch between branches
+      - name: fetch branches
+        run: |
+              git fetch --no-tags --depth=1 origin develop
+              git checkout -b develop
+              git fetch --no-tags origin ${{ github.event.pull_request.head.sha }}
+              git checkout ${{ github.event.pull_request.head.sha }}
       
       - uses: actions/setup-python@v2
         with:
@@ -27,13 +39,21 @@ jobs:
         # sorry don't know multi-line conditionals
         run: "! $( [[ $(git branch --show-current) =~ ^(bugfix|task|hotfix)-(major|minor|patch)-PLO-[1-9][0-9]*$ ]] || [[ $(git branch --show-current) == develop ]] || [[ $(git branch --show-current) == master ]] )"
 
+      # if branch version is not the same as develop, branch needs to be updated (rebased back onto develop)
+      - name: check version
+        run: |
+              git checkout develop
+              develop_version=$(cat ./version.txt)
+              git checkout ${{ github.event.pull_request.head.sha }}
+              python ./build_scripts/check_version.py ${develop_version}
+
       - name: install
         run: |
           pip install --upgrade setuptools
           pip install -r requirements.txt
-          pip install tox
+          pip install pytest
 
-      - name: run tox
-        run: tox
+      - name: run pytest
+        run: pytest ploceidae/unit_tests
       
 

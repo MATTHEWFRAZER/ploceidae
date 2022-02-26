@@ -16,7 +16,7 @@ class PartialInjection(object):
     def __call__(self, *dependencies_to_be_injected):
         dependencies_to_be_injected = self.get_dependencies_to_be_injected(dependencies_to_be_injected)
         try:
-            logger.debug("to {0} fully inject dependencies: \n{1}".format(self.dependent_object, pformat(dependencies_to_be_injected)))
+            #logger.debug("to {0} fully inject dependencies: \n{1}".format(self.dependent_object, pformat(dependencies_to_be_injected)))
             return self.dependent_object(*dependencies_to_be_injected)
         except TypeError as ex:
             raise ValueError("argument list could not have dependencies resolved to it. Did you decorate your target dependent with function with a different argument list? ex: {0}".format(ex))
