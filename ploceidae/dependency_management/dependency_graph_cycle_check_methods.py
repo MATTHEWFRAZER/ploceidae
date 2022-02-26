@@ -15,7 +15,7 @@ class DependencyGraphCycleCheckMethods(object):
         temp_graph = dependency_graph.copy()
         graph_has_topological_sort = cls.topological_sort(temp_graph)
         del temp_graph
-        logger.info("dependency graph has topological sort: {0}".format(graph_has_topological_sort))
+        #logger.info("dependency graph has topological sort: {0}".format(graph_has_topological_sort))
         return graph_has_topological_sort
 
     @classmethod

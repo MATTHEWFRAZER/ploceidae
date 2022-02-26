@@ -41,7 +41,7 @@ class Container(object):
 
     def generate_partial_injection(self, partial_injection, object_to_wire_up, time_stamp):
         def nested(*args, **kwargs):
-            logger.debug("calling replacing alt keys callback")
+            #logger.debug("calling replacing alt keys callback")
             ret = partial_injection(*args, **kwargs)
             self.dependency_graph_manager.replace_alt_keys_with_valid_dependency_lifetime_from_instance(ret, object_to_wire_up, time_stamp)
             return ret
@@ -51,7 +51,7 @@ class Container(object):
     def log_partial_injection_data(wrapped_dependency_object, dependencies_to_ignore, args_to_apply_as_dict, args_to_apply_as_group):
         message = "\n\nfor {0} ignoring: \n{1}\napplying as dict: \n{2}\napplying as group: \n{3}\n"
         data = map(pformat, (dependencies_to_ignore, args_to_apply_as_dict, args_to_apply_as_group))
-        logger.info(message.format(wrapped_dependency_object.dependency_name, *data))
+        #logger.info(message.format(wrapped_dependency_object.dependency_name, *data))
 
     @staticmethod
     def get_args_to_apply_as_dict(wrapped_dependency_object, dependencies_to_ignore, resolved_dependencies):
