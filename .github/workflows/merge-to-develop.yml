@@ -40,16 +40,10 @@ jobs:
       - name: run pytest
         run: pytest ploceidae/unit_tests
 
-      # HACK ALERT: awk was being absolutely retarded... It returns the incorrect column for git log. I think it has to do with the string containing a "/"
-      # we find the merge commit as it will be first commit with a ploceidae branch as a ref and pull the ref from that commit
-      # we then replace the character "-" with " " and print out the 2nd column which will be the version increment in that branch name
-      - name: echo output of complicated one-liner
-        run: echo $(git log -2 --format=%D | awk '{print $1}' | tr / " " | awk '{print $2}' | tr - " " | awk '{print $2}')
-
       # TODO: make sure in the case that a person has a different version.txt (i.e. they are lagging behind), that git raises a merge conflict and the version does not get compromised
       # increment version number based on the change type
       - name: increment version
-        run: git log -2 --format=%D | awk '{print $1}' | tr / " " | awk '{print $2}' | tr - " " | awk '{print $2}' | xargs ./build_scripts/increment_version_number.py ${version_increment}
+        run: git log -1 --format=%f | tr - " " | awk '{print $8}' | xargs ./build_scripts/increment_version_number.py ${version_increment}
 
       # writing my own commit step and not using existing commit actions because those actions change the author. I want to preserve the commit as is (except for the version.txt)
       - name: add commit
