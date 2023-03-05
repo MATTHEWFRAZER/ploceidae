@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['2.7', '3.5', '3.6', '3.7', '3.8', '3.9']
+        python-version: ['2.7', '3.7', '3.8', '3.9', '3.10', '3.11']
 
     name: Run with ${{ matrix.python-version }}
     steps:
@@ -35,9 +35,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: verify branch name
-        # if branch name is not of the form <change type>-<version increment type>-<project>-<ticket number> or master or develop, we fail the build
+        #  if branch name is not of the form <change type>-<version increment type>-<project>-<ticket number> or master or develop, we fail the build
         # sorry don't know multi-line conditionals
-        run: "! $( [[ $(git branch --show-current) =~ ^(bugfix|task|hotfix)-(major|minor|patch)-PLO-[1-9][0-9]*$ ]] || [[ $(git branch --show-current) == develop ]] || [[ $(git branch --show-current) == master ]] )"
+        run: "! $( [[ $(git branch --show-current) =~ ^(bugfix|task|hotfix)-(major|minor|patch)-PLOC-[1-9][0-9]*$ ]] || [[ $(git branch --show-current) == develop ]] || [[ $(git branch --show-current) == master ]] )"
 
       # if branch version is not the same as develop, branch needs to be updated (rebased back onto develop)
       - name: check version
@@ -49,6 +49,7 @@ jobs:
 
       - name: install
         run: |
+          pip install --upgrade pip
           pip install --upgrade setuptools
           pip install -r requirements.txt
           pip install pytest
