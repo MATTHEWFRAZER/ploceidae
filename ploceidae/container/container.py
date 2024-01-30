@@ -2,6 +2,7 @@ from datetime import datetime
 import logging
 from pprint import pformat
 
+from ploceidae.utilities.importlib_utilities import ploceidae_import_module
 from ploceidae.dependency.dependency_wrapper import DependencyWrapper
 from ploceidae.dependency.dependency_wrapper_helper_methods import DependencyWrapperHelperMethods
 from ploceidae.container.partial_injection import PartialInjection
@@ -13,13 +14,22 @@ __all__ = ["Container"]
 
 class Container(object):
 
-    def __init__(self, dependency_graph_manager):
+    def __init__(self, dependency_graph_manager, ploceidae_setup_module=None):
         self.dependency_graph_manager = dependency_graph_manager
+        self.ploceidae_setup_module = ploceidae_setup_module
+        self.resolved = ploceidae_setup_module is None
 
     def wire_dependencies(self, object_to_wire_up, *dependencies_to_ignore):
         return self.partially_wire_dependencies(object_to_wire_up, *dependencies_to_ignore)()
 
     def partially_wire_dependencies(self, object_to_wire_up, *dependencies_to_ignore):
+        if not self.resolved:
+            try:
+                _ = ploceidae_import_module(self.ploceidae_setup_module)
+            except (ValueError, ModuleNotFoundError) as ex:
+                raise ValueError("ploceidae setup {0} could not be imported: {1}".format(self.ploceidae_setup_module, str(ex)))
+            self.resolved = True
+
         DependencyWrapperHelperMethods.input_validation_for_dependency_object(object_to_wire_up)
 
         dependency_wrapper = DependencyWrapper.get_dependency_without_decoration(object_to_wire_up, None, self.dependency_graph_manager)
