@@ -20,7 +20,7 @@ jobs:
     name: Run with ${{ matrix.python-version }}
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       # HACK ALERT: required to be able to switch between branches
       - name: fetch branches
@@ -30,7 +30,7 @@ jobs:
               git fetch --no-tags origin ${{ github.event.pull_request.head.sha }}
               git checkout ${{ github.event.pull_request.head.sha }}
       
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
