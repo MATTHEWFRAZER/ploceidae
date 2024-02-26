@@ -19,11 +19,11 @@ jobs:
     name: Run with ${{ matrix.python-version }}
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           ref: master
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
